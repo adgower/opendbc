@@ -1,7 +1,9 @@
+import os
 import numpy as np
 from opendbc.car import Bus, get_safety_config, structs
 from opendbc.car.carlog import carlog
 from opendbc.car.common.conversions import Conversions as CV
+from opendbc.car.ford import navigator_a2
 from opendbc.car.ford.carcontroller import CarController
 from opendbc.car.ford.carstate import CarState
 from opendbc.car.ford.fordcan import CanBus
@@ -96,5 +98,10 @@ class CarInterface(CarInterfaceBase):
     ret.minSteerSpeed = 0.
 
     ret.autoResumeSng = ret.minEnableSpeed == -1.
+    # Owner opt-in is evaluated only when startup CarParams are generated.
+    navigator_a2.apply_navigator_a2_parameters(
+      ret, enabled=navigator_a2.navigator_a2_profile_enabled(os.getenv('NAVIGATOR_A2_PROFILE'), docs=docs, replay=os.getenv('REPLAY') == '1'),
+      curb_mass_kg=navigator_a2.APPROVED_CURB_MASS_KG,
+    )
     ret.centerToFront = ret.wheelbase * 0.44
     return ret

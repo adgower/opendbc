@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import math
 
 from opendbc.car.ford import fordcan
+from opendbc.car.ford.values import CarControllerParams
 
 DONOR_REVISION = '3210caa02d9e09b46d08be490f689edb23b22b20'
 CADENCE_NS = 50_000_000
@@ -54,6 +55,24 @@ def gain_for(profile: Profile, speed: float, curvature: float) -> float:
   return interp(abs(curvature), (.0007, .001), (low, high))
 
 
+def angle_for(profile: Profile, speed: float, curvature: float) -> float:
+  return curvature * speed * gain_for(profile, speed, curvature)
+
+
+def curvature_for(profile: Profile, speed: float, angle: float) -> float:
+  """Algebraic inverse for fixed monotonic profiles; not an EPS response model."""
+  if angle == 0.:
+    return 0.
+  low, high = 0., 1.
+  for _ in range(48):
+    mid = (low + high) * .5
+    if angle_for(profile, speed, mid) < abs(angle):
+      low = mid
+    else:
+      high = mid
+  return math.copysign((low + high) * .5, angle)
+
+
 @dataclass(frozen=True)
 class Inputs:
   now_ns: int
@@ -69,6 +88,7 @@ class Inputs:
 class State:
   path_angle_rad: float = 0.
   last_ns: int | None = None
+  equivalent_curvature_inv_m: float | None = None
 
 
 @dataclass(frozen=True)
@@ -81,6 +101,8 @@ class Output:
   reason: str
   profile: str
   transmission_allowed: bool = False
+  requested_gain: float = 0.
+  equivalent_curvature_inv_m: float | None = None
 
 
 def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
@@ -99,6 +121,8 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
     reason = 'invalid'
   elif abs(sample.curvature_inv_m) > .02 or sample.speed_mps > 60.:
     reason = 'invalid'
+  elif state.equivalent_curvature_inv_m is not None and not math.isfinite(state.equivalent_curvature_inv_m):
+    reason = 'invalid'
   elif not 0 <= sample.now_ns - sample.source_ns <= MAX_AGE_NS:
     reason = 'stale'
   elif not sample.active:
@@ -116,14 +140,28 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
   gain = gain_for(profile, sample.speed_mps, sample.curvature_inv_m)
   raw = sample.curvature_inv_m * sample.speed_mps * gain
   roc = interp(sample.speed_mps, (9., 10., 15., 25.), (.055, .055, .0425, .009))
+  # General-controls input has not yet passed the Ford adapter's limiter.
+  # Restore that frozen envelope before converting to path angle. Retain the
+  # inverse of the actual quantized proposal, at its original speed, as history.
+  previous = state.equivalent_curvature_inv_m
+  if previous is None:
+    previous = curvature_for(profile, sample.speed_mps, state.path_angle_rad)
+  limits = CarControllerParams.CURVATURE_LIMITS
+  low_k = limits.apply_limits(-.02, previous, sample.speed_mps, 0., True, CarControllerParams.STEER_STEP)
+  high_k = limits.apply_limits(.02, previous, sample.speed_mps, 0., True, CarControllerParams.STEER_STEP)
+  low_angle = angle_for(profile, sample.speed_mps, low_k)
+  high_angle = angle_for(profile, sample.speed_mps, high_k)
   # Host sign is opposite the Ford wire. Intersect rate and asymmetric DBC
   # bounds on the integer grid; truncating magnitude alone can violate unwind ROC.
-  lower = math.ceil((max(-.5235, state.path_angle_rad - roc) - 1e-12) / .0005)
-  upper = math.floor((min(.5, state.path_angle_rad + roc) + 1e-12) / .0005)
+  lower = math.ceil((max(-.5235, state.path_angle_rad - roc, low_angle) - 1e-12) / .0005)
+  upper = math.floor((min(.5, state.path_angle_rad + roc, high_angle) + 1e-12) / .0005)
   if lower > upper:
     return Output(State(0., sample.now_ns), 0, 0., raw, gain, 'invalid_state', name)
   angle = min(upper, max(lower, round(raw / .0005))) * .0005
-  return Output(State(angle, sample.now_ns), 1, angle, raw, gain, 'limited' if abs(angle - raw) > 1e-9 else 'tracking', name)
+  equivalent = curvature_for(profile, sample.speed_mps, angle)
+  return Output(State(angle, sample.now_ns, equivalent), 1, angle, raw, gain_for(profile, sample.speed_mps, equivalent),
+                'limited' if abs(angle - raw) > 1e-9 else 'tracking', name,
+                requested_gain=gain, equivalent_curvature_inv_m=equivalent)
 
 
 def encode_offline(packer, output: Output, counter: int):

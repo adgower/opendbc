@@ -84,3 +84,36 @@ def test_unwind_quantization_respects_rate():
 def test_invalid_state_is_neutral(angle):
   o = update(select_profile('expedition-provisional-v1'), State(angle, 950_000_000), inp())
   assert o.mode == 0 and o.path_angle_rad == 0
+
+
+@pytest.mark.parametrize('speed,previous,target', [(8.763889, .03, .0058520888), (23.76111, 0., .0047635166)])
+def test_first_rejection_curvature_step(speed, previous, target):
+  # Recorded A2 step and post-driver-release requests. The angle-only limiter
+  # must also preserve the frozen Ford curvature envelope through quantization.
+  from opendbc.car.lateral import MAX_LATERAL_JERK
+  p = select_profile('expedition-provisional-v1')
+
+  def inverse(angle):
+    lo, hi = 0., .02
+    for _ in range(60):
+      mid = (lo + hi) / 2
+      if mid * speed * gain_for(p, speed, mid) < abs(angle):
+        lo = mid
+      else:
+        hi = mid
+    return math.copysign((lo + hi) / 2, angle)
+  o = update(p, State(previous, 950_000_000), inp(speed_mps=speed, curvature_inv_m=target))
+  assert o.mode == 1  # Reject-everything is not a fix.
+  assert abs(inverse(o.path_angle_rad) - inverse(previous)) <= MAX_LATERAL_JERK / speed**2 * .05 + 1e-12
+
+
+def test_final_gain_and_inverse_history_are_logged_at_original_speed():
+  from opendbc.car.ford.navigator_a3 import curvature_for
+  p = select_profile('expedition-provisional-v1')
+  o = update(p, State(), inp(speed_mps=23.76111, curvature_inv_m=.0047635166))
+  equivalent = curvature_for(p, 23.76111, o.path_angle_rad)
+  assert o.equivalent_curvature_inv_m == equivalent
+  assert o.state.equivalent_curvature_inv_m == equivalent
+  assert o.effective_gain == gain_for(p, 23.76111, equivalent)
+  assert o.requested_gain == gain_for(p, 23.76111, .0047635166)
+  assert o.effective_gain != o.requested_gain

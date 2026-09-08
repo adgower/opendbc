@@ -1,8 +1,9 @@
-"""Core path-angle experiment: offline only, never imported by vehicle control.
+"""Pure path-angle proposal strategy for offline tests and inert runtime observation.
 
 The donor's executable mapping is kappa * speed * gain, NOT its docstring's
 half-kappa-d_ref formula. Profiles below are unvalidated research constants.
-No method transmits CAN. Stock safety and the production controller are untouched.
+No method transmits CAN. Runtime proposals are separate from actual controller frames;
+requested actuation remains blocked pending independent physical enforcement validation.
 """
 from dataclasses import dataclass
 import math

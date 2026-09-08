@@ -457,6 +457,16 @@ struct CarOutput {
   # the CarController are reflected in actuatorsOutput
   # and matches what is sent to the car
   actuatorsOutput @0 :CarControl.Actuators;
+  navigatorA3 @1 :NavigatorA3Status;
+}
+
+# Local experimental diagnostic extension. Does not grant CAN permission.
+struct NavigatorA3Status {
+  version @0 :UInt16;
+  mode @1 :Text;
+  inhibited @2 :Bool;
+  reason @3 :Text;
+  diagnosticsJson @4 :Text;
 }
 
 # ****** car param ******

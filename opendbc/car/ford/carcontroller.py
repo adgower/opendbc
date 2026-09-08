@@ -3,6 +3,7 @@ import numpy as np
 from opendbc.can import CANPacker
 from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, apply_hysteresis, structs
 from opendbc.car.ford import fordcan
+from opendbc.car.ford.navigator_a3_runtime import Runtime
 from opendbc.car.ford.values import CarControllerParams, FordFlags, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -37,6 +38,7 @@ class CarController(CarControllerBase):
     super().__init__(dbc_names, CP)
     self.packer = CANPacker(dbc_names[Bus.pt])
     self.CAN = fordcan.CanBus(CP)
+    self.navigator_a3 = Runtime(CP)
 
     self.apply_curvature_last = 0
     self.anti_overshoot_curvature_last = 0
@@ -49,7 +51,18 @@ class CarController(CarControllerBase):
     self.lead_distance_bars_last = None
     self.distance_bar_frame = 0
 
+  def set_navigator_a3_evidence(self, source_ns: int, source_valid: bool, measurement_ns: int | None,
+                                measurement_valid: bool, fault_reason: str | None):
+    self.navigator_a3.set_evidence(source_ns, source_valid, measurement_ns, measurement_valid, fault_reason)
+
   def update(self, CC, CS, now_nanos):
+    if self.frame % CarControllerParams.STEER_STEP == 0:
+      self.navigator_a3.observe(CC, CS, now_nanos, self.packer, self.CAN,
+                                (self.frame // CarControllerParams.STEER_STEP) % 0x10)
+    if self.navigator_a3.config.mode == 'requested':
+      CC = CC.as_builder()
+      CC.latActive = False
+      CC = CC.as_reader()
     can_sends = []
 
     actuators = CC.actuators
@@ -90,6 +103,8 @@ class CarController(CarControllerBase):
                                         current_curvature + CarControllerParams.CURVATURE_ERROR))
       apply_curvature = CarControllerParams.CURVATURE_LIMITS.apply_limits(apply_curvature, self.apply_curvature_last, CS.out.vEgoRaw,
                                                                           0., CC.latActive, CarControllerParams.STEER_STEP)
+      if self.navigator_a3.config.mode == 'requested':
+        apply_curvature = 0.
       self.apply_curvature_last = apply_curvature
 
       if self.CP.flags & FordFlags.CANFD:
@@ -102,6 +117,8 @@ class CarController(CarControllerBase):
         mode = 1 if CC.latActive else 0
         counter = (self.frame // CarControllerParams.STEER_STEP) % 0x10
         can_sends.append(fordcan.create_lat_ctl2_msg(self.packer, self.CAN, mode, 0., 0., -self.apply_curvature_last, 0., counter))
+        if self.navigator_a3.config.mode != 'a2':
+          self.navigator_a3.diagnostic['actual_frame'] = self.navigator_a3.frame_record(can_sends[-1])
       else:
         can_sends.append(fordcan.create_lat_ctl_msg(self.packer, self.CAN, CC.latActive, 0., 0., -self.apply_curvature_last, 0.))
 

@@ -4,6 +4,7 @@ from opendbc.can import CANPacker
 from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, apply_hysteresis, structs
 from opendbc.car.ford import fordcan
 from opendbc.car.ford.navigator_a3_runtime import Runtime
+from opendbc.car.ford.navigator_a3_command import select_command
 from opendbc.car.ford.values import CarControllerParams, FordFlags, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -63,6 +64,7 @@ class CarController(CarControllerBase):
       CC.latActive = False
       CC = CC.as_reader()
     can_sends = []
+    self.navigator_a3.selection = select_command(self.navigator_a3.config.mode, None, self.navigator_a3.proposal_frame)
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -115,7 +117,9 @@ class CarController(CarControllerBase):
         # https://www.f150gen14.com/forum/threads/introducing-bluepilot-a-ford-specific-fork-for-comma3x-openpilot.24241/#post-457706
         mode = 1 if CC.latActive else 0
         counter = (self.frame // CarControllerParams.STEER_STEP) % 0x10
-        can_sends.append(fordcan.create_lat_ctl2_msg(self.packer, self.CAN, mode, 0., 0., -self.apply_curvature_last, 0., counter))
+        scheduled = fordcan.create_lat_ctl2_msg(self.packer, self.CAN, mode, 0., 0., -self.apply_curvature_last, 0., counter)
+        self.navigator_a3.selection = select_command(self.navigator_a3.config.mode, scheduled, self.navigator_a3.proposal_frame)
+        can_sends.append(self.navigator_a3.selection.production_frame)
         if self.navigator_a3.config.mode != 'a2':
           self.navigator_a3.diagnostic['actual_frame'] = self.navigator_a3.frame_record(can_sends[-1])
       else:
@@ -194,4 +198,12 @@ class CarController(CarControllerBase):
     new_actuators.gas = self.gas
 
     self.frame += 1
+    if self.navigator_a3.config.mode != 'a2':
+      selected = self.navigator_a3.selection
+      self.navigator_a3.diagnostic['command_selection'] = {
+        'version': 1, 'production_inhibited': selected.production_inhibited,
+        'production_frame': None if selected.production_frame is None else self.navigator_a3.frame_record(selected.production_frame),
+        'experimental_frame': None if selected.experimental_frame is None else self.navigator_a3.frame_record(selected.experimental_frame),
+        'experimental_provenance': 'synthetic', 'experimental_permission': 'not_granted',
+      }
     return new_actuators, can_sends

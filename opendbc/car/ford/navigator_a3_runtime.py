@@ -6,6 +6,7 @@ import os
 from opendbc.car.ford import fordcan
 from opendbc.car.ford.navigator_a3 import Inputs, PROFILES
 from opendbc.car.ford.navigator_a3_scheduler import ShadowScheduler
+from opendbc.car.ford.navigator_a3_command import select_command
 from opendbc.car.ford.values import CAR, FordFlags
 
 
@@ -43,6 +44,8 @@ class Runtime:
     self.evidence_fault_reason = None
     self.calculation_fault_reason = None
     self.diagnostic = {}
+    self.proposal_frame = None
+    self.selection = select_command(self.config.mode, None, None)
 
   def set_evidence(self, source_ns: int, source_valid: bool, measurement_ns: int | None,
                    measurement_valid: bool, fault_reason: str | None, calculation_fault_reason: str | None = None):
@@ -55,6 +58,7 @@ class Runtime:
       None if self.config.mode == 'shadow' and fault_reason == 'direct_steering_rejection' else fault_reason)
 
   def observe(self, cc, cs, now_ns, packer, can_bus, counter):
+    self.proposal_frame = None
     if self.config.mode == 'a2':
       return
     # scheduled_update bypasses legacy strategy cadence; ShadowScheduler owns
@@ -67,6 +71,7 @@ class Runtime:
     result = decision.output
     proposed = None if result is None else fordcan.create_lat_ctl2_msg(
       packer, can_bus, result.mode, 0., -result.path_angle_rad, 0., 0., decision.proposal_counter)
+    self.proposal_frame = proposed
     self.diagnostic = {'schema_version': 3, 'calculation_eligible': sample.valid,
                        'calculation_fault_reason': self.calculation_fault_reason,
                        'timing': {'scheduled_update': True, 'scheduler_checked_at_control_rate': True, 'previous_ns': previous_ns,

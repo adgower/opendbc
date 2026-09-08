@@ -82,6 +82,9 @@ class Inputs:
   active: bool
   driver_pressed: bool
   valid: bool = True
+  measured_curvature_inv_m: float | None = None
+  measurement_ns: int | None = None
+  measurement_valid: bool = False
 
 
 @dataclass(frozen=True)
@@ -104,6 +107,10 @@ class Output:
   requested_gain: float = 0.
   equivalent_curvature_inv_m: float | None = None
 
+  measured_curvature_inv_m: float | None = None
+  measurement_age_ns: int | None = None
+  measurement_limited_curvature_inv_m: float | None = None  # before rate/angle/grid limits
+
 
 def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
   """Advance at 20 Hz; reset neutral on invalidity/driver input, never pulse.
@@ -113,6 +120,7 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
   Bounds here are not permission to actuate; compiled admission is separate.
   """
   reason = ''
+  measurement_age = None if sample.measurement_ns is None else sample.now_ns - sample.measurement_ns
   if profile is None:
     reason = 'disabled'
   elif profile not in PROFILES.values():
@@ -133,12 +141,29 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
     reason = 'low_speed'
   elif state.last_ns is not None and not CADENCE_NS <= sample.now_ns - state.last_ns <= MAX_AGE_NS:
     reason = 'cadence'
+  elif sample.speed_mps > 9.:
+    if sample.measured_curvature_inv_m is None or measurement_age is None:
+      reason = 'measurement_missing'
+    elif not sample.measurement_valid or not math.isfinite(sample.measured_curvature_inv_m):
+      reason = 'measurement_invalid'
+    elif not 0 <= measurement_age <= MAX_AGE_NS:
+      reason = 'measurement_stale'
+  measurement_fields = {'measured_curvature_inv_m': sample.measured_curvature_inv_m, 'measurement_age_ns': measurement_age}
   name = profile.name if profile else 'off'
   if reason:
-    return Output(State(0., sample.now_ns), 0, 0., 0., 0., reason, name)
+    return Output(State(0., sample.now_ns), 0, 0., 0., 0., reason, name, **measurement_fields)
   assert profile is not None
   gain = gain_for(profile, sample.speed_mps, sample.curvature_inv_m)
   raw = sample.curvature_inv_m * sample.speed_mps * gain
+  # Stock Ford ordering: clip the target around measured response first.
+  # Do not intersect this band with rate bounds: history outside the band must
+  # unwind gradually, rather than jump into it or fail on an empty intersection.
+  target = sample.curvature_inv_m
+  if sample.speed_mps > 9.:
+    assert sample.measured_curvature_inv_m is not None
+    error = CarControllerParams.CURVATURE_ERROR
+    target = min(sample.measured_curvature_inv_m + error, max(sample.measured_curvature_inv_m - error, target))
+  measurement_fields['measurement_limited_curvature_inv_m'] = target
   roc = interp(sample.speed_mps, (9., 10., 15., 25.), (.055, .055, .0425, .009))
   # General-controls input has not yet passed the Ford adapter's limiter.
   # Restore that frozen envelope before converting to path angle. Retain the
@@ -149,6 +174,7 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
   limits = CarControllerParams.CURVATURE_LIMITS
   low_k = limits.apply_limits(-.02, previous, sample.speed_mps, 0., True, CarControllerParams.STEER_STEP)
   high_k = limits.apply_limits(.02, previous, sample.speed_mps, 0., True, CarControllerParams.STEER_STEP)
+  target_angle = angle_for(profile, sample.speed_mps, min(high_k, max(low_k, target)))
   low_angle = angle_for(profile, sample.speed_mps, low_k)
   high_angle = angle_for(profile, sample.speed_mps, high_k)
   # Host sign is opposite the Ford wire. Intersect rate and asymmetric DBC
@@ -156,12 +182,12 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
   lower = math.ceil((max(-.5235, state.path_angle_rad - roc, low_angle) - 1e-12) / .0005)
   upper = math.floor((min(.5, state.path_angle_rad + roc, high_angle) + 1e-12) / .0005)
   if lower > upper:
-    return Output(State(0., sample.now_ns), 0, 0., raw, gain, 'invalid_state', name)
-  angle = min(upper, max(lower, round(raw / .0005))) * .0005
+    return Output(State(0., sample.now_ns), 0, 0., raw, gain, 'invalid_state', name, **measurement_fields)
+  angle = min(upper, max(lower, round(target_angle / .0005))) * .0005
   equivalent = curvature_for(profile, sample.speed_mps, angle)
   return Output(State(angle, sample.now_ns, equivalent), 1, angle, raw, gain_for(profile, sample.speed_mps, equivalent),
                 'limited' if abs(angle - raw) > 1e-9 else 'tracking', name,
-                requested_gain=gain, equivalent_curvature_inv_m=equivalent)
+                requested_gain=gain, equivalent_curvature_inv_m=equivalent, **measurement_fields)
 
 
 def encode_offline(packer, output: Output, counter: int):

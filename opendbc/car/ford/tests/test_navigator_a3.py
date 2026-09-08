@@ -6,7 +6,8 @@ from opendbc.car.ford.navigator_a3 import Inputs, State, select_profile, update,
 
 
 def inp(**kw):
-  return replace(Inputs(1_000_000_000, 1_000_000_000, .001, 20., True, False), **kw)
+  return replace(Inputs(1_000_000_000, 1_000_000_000, .001, 20., True, False,
+                        measured_curvature_inv_m=0., measurement_ns=1_000_000_000, measurement_valid=True), **kw)
 
 
 def test_default_and_unknown():
@@ -117,3 +118,109 @@ def test_final_gain_and_inverse_history_are_logged_at_original_speed():
   assert o.effective_gain == gain_for(p, 23.76111, equivalent)
   assert o.requested_gain == gain_for(p, 23.76111, .0047635166)
   assert o.effective_gain != o.requested_gain
+
+
+def test_missing_measurement_fails_neutral_above_nine():
+  sample = Inputs(1_000_000_000, 1_000_000_000, .001, 20., True, False)
+  o = update(select_profile('expedition-provisional-v1'), State(), sample)
+  assert o.mode == 0
+  assert o.reason == 'measurement_missing'
+
+
+@pytest.mark.parametrize('profile', ['expedition-provisional-v1', 'bof-reference-v1', 'sensitivity-low-v1', 'sensitivity-high-v1'])
+@pytest.mark.parametrize('sign', [-1., 1.])
+@pytest.mark.parametrize('speed', [9., 9.0001, 13.5, 20., 26.82, 40., 60.])
+def test_measurement_target_clips_before_rate_and_grid(profile, sign, speed):
+  from opendbc.car.ford.navigator_a3 import angle_for, curvature_for
+  from opendbc.car.ford.values import CarControllerParams
+  p = select_profile(profile)
+  sample = inp(speed_mps=speed, curvature_inv_m=sign * .01,
+               measured_curvature_inv_m=0., measurement_ns=1_000_000_000, measurement_valid=True)
+  # Start at the quantized mapping of the measurement band edge to make the
+  # measurement clamp observable independently of the initial jerk ramp.
+  edge = round(angle_for(p, speed, sign * .002) / .0005) * .0005
+  if speed == 60.:
+    edge = 0.  # The measurement band edge exceeds the acceleration bound here.
+  previous = curvature_for(p, speed, edge)
+  o = update(p, State(edge, 950_000_000, previous), sample)
+  target = sign * (.002 if speed > 9. else .01)
+  assert o.mode == 1
+  assert o.measurement_limited_curvature_inv_m == pytest.approx(target)
+  assert o.raw_path_angle_rad == angle_for(p, speed, sign * .01)
+  if speed > 9.:
+    assert abs(o.path_angle_rad) <= abs(angle_for(p, speed, target)) + .00025 + 1e-12
+  assert o.measurement_age_ns == 0 and o.measured_curvature_inv_m == 0.
+  assert o.path_angle_rad / .0005 == pytest.approx(round(o.path_angle_rad / .0005))
+  limits = CarControllerParams.CURVATURE_LIMITS
+  low = limits.apply_limits(-.02, previous, speed, 0., True, CarControllerParams.STEER_STEP)
+  high = limits.apply_limits(.02, previous, speed, 0., True, CarControllerParams.STEER_STEP)
+  assert low - 1e-12 <= o.equivalent_curvature_inv_m <= high + 1e-12
+
+
+@pytest.mark.parametrize('changes,reason', [
+  ({'measured_curvature_inv_m': None}, 'measurement_missing'),
+  ({'measurement_ns': None}, 'measurement_missing'),
+  ({'measurement_valid': False}, 'measurement_invalid'),
+  ({'measured_curvature_inv_m': float('nan')}, 'measurement_invalid'),
+  ({'measured_curvature_inv_m': float('inf')}, 'measurement_invalid'),
+  ({'measured_curvature_inv_m': -float('inf')}, 'measurement_invalid'),
+  ({'measurement_ns': 899_999_999}, 'measurement_stale'),
+  ({'measurement_ns': 1_000_000_001}, 'measurement_stale'),
+])
+def test_measurement_failures(changes, reason):
+  sample = inp(measured_curvature_inv_m=0., measurement_ns=1_000_000_000, measurement_valid=True)
+  o = update(select_profile('expedition-provisional-v1'), State(.01, 950_000_000), replace(sample, **changes))
+  assert o.mode == 0 and o.path_angle_rad == 0. and o.state.path_angle_rad == 0.
+  assert o.reason == reason
+
+
+@pytest.mark.parametrize('speed', [1., 8.9999, 9.])
+def test_measurement_not_required_at_or_below_nine(speed):
+  sample = Inputs(1_000_000_000, 1_000_000_000, .005, speed, True, False)
+  p = select_profile('expedition-provisional-v1')
+  missing = update(p, State(), sample)
+  invalid = update(p, State(), replace(sample, measured_curvature_inv_m=float('nan'), measurement_ns=1))
+  assert missing.mode == invalid.mode == 1
+  assert missing.path_angle_rad == invalid.path_angle_rad
+  assert missing.measurement_limited_curvature_inv_m == .005
+
+
+@pytest.mark.parametrize('age', [0, 100_000_000])
+def test_measurement_age_endpoints(age):
+  o = update(select_profile('expedition-provisional-v1'), State(),
+             inp(measured_curvature_inv_m=0., measurement_ns=1_000_000_000 - age, measurement_valid=True))
+  assert o.mode == 1 and o.measurement_age_ns == age
+
+
+@pytest.mark.parametrize('profile', ['expedition-provisional-v1', 'bof-reference-v1', 'sensitivity-low-v1', 'sensitivity-high-v1'])
+@pytest.mark.parametrize('sign', [-1., 1.])
+def test_outside_measurement_band_reenters_gradually(profile, sign):
+  from opendbc.car.ford.navigator_a3 import curvature_for
+  p = select_profile(profile)
+  state = State(sign * .1, 950_000_000, curvature_for(p, 20., sign * .1))
+  initial = abs(state.equivalent_curvature_inv_m)
+  observed = []
+  for i in range(20):
+    now = 1_000_000_000 + i * 50_000_000
+    o = update(p, state, inp(now_ns=now, source_ns=now, curvature_inv_m=sign * .01,
+                            measured_curvature_inv_m=0., measurement_ns=now, measurement_valid=True))
+    assert o.mode == 1
+    assert o.measurement_limited_curvature_inv_m == sign * .002
+    observed.append(abs(o.equivalent_curvature_inv_m))
+    state = o.state
+  assert .002 < observed[0] < initial  # No hard intersection or forced jump.
+  assert observed[-1] <= .00203
+  assert all(a >= b - 1e-12 for a, b in zip(observed[:-1], observed[1:], strict=True))
+
+
+@pytest.mark.parametrize('measured', [-1e308, -.004, .004, 1e308])
+def test_nonzero_finite_measurement_clips_target_before_other_limits(measured):
+  sample = inp(curvature_inv_m=0., measured_curvature_inv_m=measured,
+               measurement_ns=1_000_000_000, measurement_valid=True)
+  o = update(select_profile('expedition-provisional-v1'), State(), sample)
+  assert o.mode == 1
+  assert o.raw_path_angle_rad == 0.
+  assert o.measurement_limited_curvature_inv_m == pytest.approx(math.copysign(max(0., abs(measured) - .002), measured))
+  assert math.isfinite(o.path_angle_rad)
+  assert math.copysign(1, o.path_angle_rad) == math.copysign(1, measured)
+  assert abs(o.path_angle_rad) <= .011

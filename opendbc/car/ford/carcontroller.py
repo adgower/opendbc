@@ -56,9 +56,8 @@ class CarController(CarControllerBase):
     self.navigator_a3.set_evidence(source_ns, source_valid, measurement_ns, measurement_valid, fault_reason, calculation_fault_reason)
 
   def update(self, CC, CS, now_nanos):
-    if self.frame % CarControllerParams.STEER_STEP == 0:
-      self.navigator_a3.observe(CC, CS, now_nanos, self.packer, self.CAN,
-                                (self.frame // CarControllerParams.STEER_STEP) % 0x10)
+    self.navigator_a3.observe(CC, CS, now_nanos, self.packer, self.CAN,
+                              (self.frame // CarControllerParams.STEER_STEP) % 0x10)
     if self.navigator_a3.config.mode == 'requested':
       CC = CC.as_builder()
       CC.latActive = False

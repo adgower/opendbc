@@ -4,7 +4,8 @@ import math
 import os
 
 from opendbc.car.ford import fordcan
-from opendbc.car.ford.navigator_a3 import Inputs, PROFILES, State, update
+from opendbc.car.ford.navigator_a3 import Inputs, PROFILES
+from opendbc.car.ford.navigator_a3_scheduler import ShadowScheduler
 from opendbc.car.ford.values import CAR, FordFlags
 
 
@@ -33,7 +34,7 @@ class Config:
 class Runtime:
   def __init__(self, cp):
     self.config = Config.from_startup(cp)
-    self.state = State()
+    self.scheduler = ShadowScheduler()
     self.fault_reason = 'physical_enforcement_unvalidated' if self.config.mode == 'requested' else None
     self.source_ns = 0
     self.source_valid = False
@@ -56,20 +57,31 @@ class Runtime:
   def observe(self, cc, cs, now_ns, packer, can_bus, counter):
     if self.config.mode == 'a2':
       return
+    # scheduled_update bypasses legacy strategy cadence; ShadowScheduler owns
+    # proposal eligibility while observe is checked at the 100 Hz control rate.
     sample = Inputs(now_ns, self.source_ns, cc.actuators.curvature, cs.out.vEgoRaw,
                     cc.latActive, cs.out.steeringPressed, self.source_valid and self.calculation_fault_reason is None,
                     -cs.out.yawRate / max(cs.out.vEgoRaw, .1), self.measurement_ns, self.measurement_valid, scheduled_update=True)
-    previous_ns = self.state.last_ns
-    result = update(PROFILES[self.config.profile], self.state, sample)
-    self.state = result.state
-    proposed = fordcan.create_lat_ctl2_msg(packer, can_bus, result.mode, 0., -result.path_angle_rad, 0., 0., counter)
-    self.diagnostic = {'schema_version': 2, 'calculation_eligible': sample.valid,
+    previous_ns = self.scheduler.last_call_ns
+    decision = self.scheduler.step(PROFILES[self.config.profile], sample)
+    result = decision.output
+    proposed = None if result is None else fordcan.create_lat_ctl2_msg(
+      packer, can_bus, result.mode, 0., -result.path_angle_rad, 0., 0., decision.proposal_counter)
+    self.diagnostic = {'schema_version': 3, 'calculation_eligible': sample.valid,
                        'calculation_fault_reason': self.calculation_fault_reason,
-                       'timing': {'scheduled_update': True, 'previous_ns': previous_ns,
+                       'timing': {'scheduled_update': True, 'scheduler_checked_at_control_rate': True, 'previous_ns': previous_ns,
                                   'elapsed_ns': None if previous_ns is None else now_ns - previous_ns},
-                       'config': asdict(self.config), 'input': asdict(sample), 'output': asdict(result),
+                       'scheduler': {**asdict(decision), 'output': None},
+                       'config': asdict(self.config), 'input': asdict(sample),
+                       'output': None if result is None else asdict(result),
                        'fault_reason': self.fault_reason, 'evidence_fault_reason': self.evidence_fault_reason,
-                       'proposed_frame': self.frame_record(proposed), 'actual_frame': None}
+                       'proposed_frame': None if proposed is None else self.frame_record(proposed), 'actual_frame': None}
+    self.diagnostic['scheduler'].pop('output')
+    self.diagnostic['scheduler']['new_proposal'] = result is not None
+
+  @property
+  def state(self):
+    return self.scheduler.state
 
   @staticmethod
   def frame_record(frame):

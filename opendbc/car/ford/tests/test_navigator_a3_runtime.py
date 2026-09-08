@@ -170,15 +170,20 @@ def test_candidate_lifecycle_neutralizes_without_changing_shadow_frames(monkeypa
   assert c.navigator_a3.diagnostic['output']['mode'] == 0
 
 
-def test_diagnostics_update_only_on_lateral_cadence_and_recover_after_dropout(monkeypatch):
+def test_diagnostics_update_every_loop_without_repeated_proposals_and_recover_after_dropout(monkeypatch):
   c = controller(monkeypatch, 'shadow')
   cc, cs = sample(25)
   for frame in range(16):
     now = 1_000_000_000 + frame * 10_000_000
     c.set_navigator_a3_evidence(now, frame < 5 or frame >= 10, now, True, None)
     c.update(cc, cs, now)
-    assert c.navigator_a3.diagnostic['input']['now_ns'] == 1_000_000_000 + frame // 5 * 50_000_000
-    assert c.navigator_a3.diagnostic['output']['mode'] == (0 if 5 <= frame < 10 else 1)
+    d = c.navigator_a3.diagnostic
+    assert d['input']['now_ns'] == now
+    assert d['schema_version'] == 3
+    if frame in (0, 5, 10, 15):
+      assert d['output']['mode'] == (0 if frame == 5 else 1)
+    else:
+      assert d['output'] is None and d['proposed_frame'] is None
 
 @pytest.mark.parametrize('profile', list(__import__('opendbc.car.ford.navigator_a3', fromlist=['PROFILES']).PROFILES))
 @pytest.mark.parametrize('sign', [-1, 1])
@@ -194,13 +199,16 @@ def test_scheduled_shadow_jitter_and_nonmonotonic_clock(monkeypatch, profile, si
   for now in times:
     c.set_navigator_a3_evidence(now, True, now, True, None)
     c.navigator_a3.observe(cc, cs, now, c.packer, c.CAN, 0)
-    assert c.navigator_a3.diagnostic['output']['mode'] == 1
+    if now == times[1]:
+      assert c.navigator_a3.diagnostic['output'] is None
+    else:
+      assert c.navigator_a3.diagnostic['output']['mode'] == 1
   state = c.navigator_a3.state
   for now in (times[-1], times[-1] - 1):
     c.set_navigator_a3_evidence(now, True, now, True, None)
     c.navigator_a3.observe(cc, cs, now, c.packer, c.CAN, 0)
     assert c.navigator_a3.state == state
-    assert c.navigator_a3.diagnostic['output']['mode'] == 0
+    assert c.navigator_a3.diagnostic['output'] is None
   now = times[-1] + 100_000_001
   c.set_navigator_a3_evidence(now, True, now, True, None)
   c.navigator_a3.observe(cc, cs, now, c.packer, c.CAN, 0)
@@ -225,4 +233,33 @@ def test_direct_rejection_shadow_eligibility_and_other_faults(monkeypatch, mode)
                             'direct_steering_rejection', 'configuration_mismatch')
   c.navigator_a3.observe(cc, cs, 1_050_000_000, c.packer, c.CAN, 1)
   assert not c.navigator_a3.diagnostic['calculation_eligible']
-  assert c.navigator_a3.diagnostic['output']['mode'] == 0
+  if mode == 'shadow':
+    assert c.navigator_a3.diagnostic['output']['mode'] == 0
+  else:
+    assert c.navigator_a3.diagnostic['output'] is None
+    assert c.navigator_a3.diagnostic['scheduler']['reason'] == 'invalid'
+
+
+def test_shadow_can_emit_between_actual_a2_steering_updates(monkeypatch):
+  c = controller(monkeypatch, 'shadow')
+  cc, cs = sample(25)
+  # The fifth controller interval arrives early. A2 still emits on frame 5;
+  # the independent shadow scheduler becomes eligible on frame 6 instead.
+  for frame, offset_ms in enumerate((0, 10, 20, 30, 40, 49, 59)):
+    now = 1_000_000_000 + offset_ms * 1_000_000
+    c.set_navigator_a3_evidence(now, True, now, True, None)
+    _, sends = c.update(cc, cs, now)
+    diagnostic = c.navigator_a3.diagnostic
+    steering = [data.hex() for address, data, _ in sends if address == 0x3d6]
+    if frame == 5:
+      assert steering
+      assert diagnostic['actual_frame']['data'] == steering[0]
+      assert diagnostic['proposed_frame'] is None
+      assert diagnostic['scheduler']['waiting']
+    if frame == 6:
+      assert not steering
+      assert diagnostic['actual_frame'] is None
+      assert diagnostic['proposed_frame'] is not None
+      assert diagnostic['scheduler']['new_proposal']
+      assert diagnostic['scheduler']['proposal_counter'] == 1
+      assert diagnostic['timing']['scheduler_checked_at_control_rate']

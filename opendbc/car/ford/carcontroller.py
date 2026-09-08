@@ -52,8 +52,8 @@ class CarController(CarControllerBase):
     self.distance_bar_frame = 0
 
   def set_navigator_a3_evidence(self, source_ns: int, source_valid: bool, measurement_ns: int | None,
-                                measurement_valid: bool, fault_reason: str | None):
-    self.navigator_a3.set_evidence(source_ns, source_valid, measurement_ns, measurement_valid, fault_reason)
+                                measurement_valid: bool, fault_reason: str | None, calculation_fault_reason: str | None = None):
+    self.navigator_a3.set_evidence(source_ns, source_valid, measurement_ns, measurement_valid, fault_reason, calculation_fault_reason)
 
   def update(self, CC, CS, now_nanos):
     if self.frame % CarControllerParams.STEER_STEP == 0:

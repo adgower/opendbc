@@ -179,3 +179,50 @@ def test_diagnostics_update_only_on_lateral_cadence_and_recover_after_dropout(mo
     c.update(cc, cs, now)
     assert c.navigator_a3.diagnostic['input']['now_ns'] == 1_000_000_000 + frame // 5 * 50_000_000
     assert c.navigator_a3.diagnostic['output']['mode'] == (0 if 5 <= frame < 10 else 1)
+
+@pytest.mark.parametrize('profile', list(__import__('opendbc.car.ford.navigator_a3', fromlist=['PROFILES']).PROFILES))
+@pytest.mark.parametrize('sign', [-1, 1])
+def test_scheduled_shadow_jitter_and_nonmonotonic_clock(monkeypatch, profile, sign):
+  c = controller(monkeypatch, 'shadow')
+  monkeypatch.setenv('NAVIGATOR_A3_PROFILE', profile)
+  c = controller(monkeypatch)  # startup consumes the explicit profile
+  cc, cs = sample(25)
+  cc = cc.as_builder()
+  cc.actuators.curvature = sign * .002
+  cs.out.yawRate = 0.
+  times = [1_000_000_000, 1_049_000_000, 1_100_000_000]
+  for now in times:
+    c.set_navigator_a3_evidence(now, True, now, True, None)
+    c.navigator_a3.observe(cc, cs, now, c.packer, c.CAN, 0)
+    assert c.navigator_a3.diagnostic['output']['mode'] == 1
+  state = c.navigator_a3.state
+  for now in (times[-1], times[-1] - 1):
+    c.set_navigator_a3_evidence(now, True, now, True, None)
+    c.navigator_a3.observe(cc, cs, now, c.packer, c.CAN, 0)
+    assert c.navigator_a3.state == state
+    assert c.navigator_a3.diagnostic['output']['mode'] == 0
+  now = times[-1] + 100_000_001
+  c.set_navigator_a3_evidence(now, True, now, True, None)
+  c.navigator_a3.observe(cc, cs, now, c.packer, c.CAN, 0)
+  assert c.navigator_a3.state.path_angle_rad == 0
+  assert c.navigator_a3.diagnostic['output']['mode'] == 0
+
+@pytest.mark.parametrize('mode', ['shadow', 'requested'])
+def test_direct_rejection_shadow_eligibility_and_other_faults(monkeypatch, mode):
+  c = controller(monkeypatch, mode)
+  cc, cs = sample(25)
+  c.set_navigator_a3_evidence(1_000_000_000, True, 1_000_000_000, True, 'direct_steering_rejection')
+  _, sends = c.update(cc, cs, 1_000_000_000)
+  d = c.navigator_a3.diagnostic
+  assert d['evidence_fault_reason'] == 'direct_steering_rejection'
+  assert d['calculation_eligible'] == (mode == 'shadow')
+  assert d['output']['mode'] == (1 if mode == 'shadow' else 0)
+  assert not d['output']['transmission_allowed']
+  if mode == 'requested':
+    assert all(data[0] >> 4 & 7 == 0 for address, data, _ in sends if address == 982)
+  # A later independently latched fault cannot be hidden by the first evidence reason.
+  c.set_navigator_a3_evidence(1_050_000_000, True, 1_050_000_000, True,
+                            'direct_steering_rejection', 'configuration_mismatch')
+  c.navigator_a3.observe(cc, cs, 1_050_000_000, c.packer, c.CAN, 1)
+  assert not c.navigator_a3.diagnostic['calculation_eligible']
+  assert c.navigator_a3.diagnostic['output']['mode'] == 0

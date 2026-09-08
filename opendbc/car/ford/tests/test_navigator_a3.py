@@ -224,3 +224,26 @@ def test_nonzero_finite_measurement_clips_target_before_other_limits(measured):
   assert math.isfinite(o.path_angle_rad)
   assert math.copysign(1, o.path_angle_rad) == math.copysign(1, measured)
   assert abs(o.path_angle_rad) <= .011
+
+@pytest.mark.parametrize('profile_name', ['expedition-provisional-v1', 'bof-reference-v1', 'sensitivity-low-v1', 'sensitivity-high-v1'])
+@pytest.mark.parametrize('sign', [-1, 1])
+def test_scheduled_jitter_preserves_per_update_limits_and_driver_reentry(profile_name, sign):
+  profile = select_profile(profile_name)
+  regular_state, jitter_state = State(), State()
+  jitter_now = 1_000_000_000
+  for step in range(80):
+    regular_now = 1_000_000_000 + step * 50_000_000
+    if step:
+      jitter_now += [49_000_000, 51_000_000, 48_000_000, 52_000_000][step % 4]
+    speed = [9., 9.0001, 15., 25., 26.82, 40.][step // 14]
+    common = dict(speed_mps=speed, curvature_inv_m=sign * .008, measured_curvature_inv_m=sign * .004,
+                  driver_pressed=step in (25, 26), valid=step != 45, scheduled_update=True)
+    regular = update(profile, regular_state, inp(now_ns=regular_now, source_ns=regular_now, measurement_ns=regular_now, **common))
+    jitter = update(profile, jitter_state, inp(now_ns=jitter_now, source_ns=jitter_now, measurement_ns=jitter_now, **common))
+    assert jitter.path_angle_rad == regular.path_angle_rad
+    assert jitter.reason == regular.reason
+    assert not jitter.transmission_allowed
+    assert jitter.path_angle_rad / .0005 == pytest.approx(round(jitter.path_angle_rad / .0005))
+    if step in (25, 26, 45):
+      assert jitter.path_angle_rad == 0
+    regular_state, jitter_state = regular.state, jitter.state

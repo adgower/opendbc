@@ -40,26 +40,34 @@ class Runtime:
     self.measurement_ns = None
     self.measurement_valid = False
     self.evidence_fault_reason = None
+    self.calculation_fault_reason = None
     self.diagnostic = {}
 
   def set_evidence(self, source_ns: int, source_valid: bool, measurement_ns: int | None,
-                   measurement_valid: bool, fault_reason: str | None):
+                   measurement_valid: bool, fault_reason: str | None, calculation_fault_reason: str | None = None):
     self.source_ns = source_ns
     self.source_valid = source_valid
     self.measurement_ns = measurement_ns
     self.measurement_valid = measurement_valid
     self.evidence_fault_reason = fault_reason
+    self.calculation_fault_reason = calculation_fault_reason or (
+      None if self.config.mode == 'shadow' and fault_reason == 'direct_steering_rejection' else fault_reason)
 
   def observe(self, cc, cs, now_ns, packer, can_bus, counter):
     if self.config.mode == 'a2':
       return
     sample = Inputs(now_ns, self.source_ns, cc.actuators.curvature, cs.out.vEgoRaw,
-                    cc.latActive, cs.out.steeringPressed, self.source_valid and self.evidence_fault_reason is None,
-                    -cs.out.yawRate / max(cs.out.vEgoRaw, .1), self.measurement_ns, self.measurement_valid)
+                    cc.latActive, cs.out.steeringPressed, self.source_valid and self.calculation_fault_reason is None,
+                    -cs.out.yawRate / max(cs.out.vEgoRaw, .1), self.measurement_ns, self.measurement_valid, scheduled_update=True)
+    previous_ns = self.state.last_ns
     result = update(PROFILES[self.config.profile], self.state, sample)
     self.state = result.state
     proposed = fordcan.create_lat_ctl2_msg(packer, can_bus, result.mode, 0., -result.path_angle_rad, 0., 0., counter)
-    self.diagnostic = {'config': asdict(self.config), 'input': asdict(sample), 'output': asdict(result),
+    self.diagnostic = {'schema_version': 2, 'calculation_eligible': sample.valid,
+                       'calculation_fault_reason': self.calculation_fault_reason,
+                       'timing': {'scheduled_update': True, 'previous_ns': previous_ns,
+                                  'elapsed_ns': None if previous_ns is None else now_ns - previous_ns},
+                       'config': asdict(self.config), 'input': asdict(sample), 'output': asdict(result),
                        'fault_reason': self.fault_reason, 'evidence_fault_reason': self.evidence_fault_reason,
                        'proposed_frame': self.frame_record(proposed), 'actual_frame': None}
 

@@ -86,6 +86,7 @@ class Inputs:
   measured_curvature_inv_m: float | None = None
   measurement_ns: int | None = None
   measurement_valid: bool = False
+  scheduled_update: bool = False  # caller guarantees one invocation per Ford steering schedule
 
 
 @dataclass(frozen=True)
@@ -140,8 +141,6 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
     reason = 'driver_override'
   elif sample.speed_mps < 1.:
     reason = 'low_speed'
-  elif state.last_ns is not None and not CADENCE_NS <= sample.now_ns - state.last_ns <= MAX_AGE_NS:
-    reason = 'cadence'
   elif sample.speed_mps > 9.:
     if sample.measured_curvature_inv_m is None or measurement_age is None:
       reason = 'measurement_missing'
@@ -151,8 +150,16 @@ def update(profile: Profile | None, state: State, sample: Inputs) -> Output:
       reason = 'measurement_stale'
   measurement_fields = {'measured_curvature_inv_m': sample.measured_curvature_inv_m, 'measurement_age_ns': measurement_age}
   name = profile.name if profile else 'off'
+  if not reason and state.last_ns is not None:
+    elapsed = sample.now_ns - state.last_ns
+    if sample.scheduled_update and elapsed <= 0:
+      return Output(state, 0, 0., 0., 0., 'nonmonotonic_time', name, **measurement_fields)
+    if elapsed > MAX_AGE_NS:
+      reason = 'timing_gap' if sample.scheduled_update else 'cadence'
+    elif not sample.scheduled_update and elapsed < CADENCE_NS:
+      reason = 'cadence'
   if reason:
-    return Output(State(0., sample.now_ns), 0, 0., 0., 0., reason, name, **measurement_fields)
+    return Output(State(0., max(sample.now_ns, state.last_ns or sample.now_ns)), 0, 0., 0., 0., reason, name, **measurement_fields)
   assert profile is not None
   gain = gain_for(profile, sample.speed_mps, sample.curvature_inv_m)
   raw = sample.curvature_inv_m * sample.speed_mps * gain

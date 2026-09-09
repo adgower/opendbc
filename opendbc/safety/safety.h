@@ -194,6 +194,10 @@ bool safety_rx_hook(const CANPacket_t *msg) {
   bool controls_allowed_prev = controls_allowed;
 
   bool valid = rx_msg_safety_check(msg, &current_safety_config, current_hooks);
+  // Angle corroboration observes failed RX as well as accepted samples.
+  if (current_hooks == &ford_hooks) {
+    ford_a3_observe_rx(msg, valid);
+  }
   bool whitelisted = get_addr_check_index(msg, current_safety_config.rx_checks, current_safety_config.rx_checks_len) != -1;
   if (valid && whitelisted) {
     current_hooks->rx(msg);

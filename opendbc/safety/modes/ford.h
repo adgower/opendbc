@@ -104,6 +104,9 @@ static const CurvatureSteeringLimits FORD_STEERING_LIMITS = {
   .max_steer_power = 0,               // disabled, Ford has no steed power signal
 };
 
+#include "opendbc/safety/modes/ford_angle.h"
+
+
 static void ford_rx_hook(const CANPacket_t *msg) {
   if (msg->bus == FORD_MAIN_BUS) {
     // Update in motion state from standstill signal
@@ -259,6 +262,11 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
     unsigned int raw_curvature_rate = (msg->data[6] << 3) | (msg->data[7] >> 5);
     unsigned int raw_path_angle = ((msg->data[3] & 0x1FU) << 6) | (msg->data[4] >> 2);
     unsigned int raw_path_offset = ((msg->data[4] & 0x3U) << 8) | msg->data[5];
+    if (ford_final_path_angle_checks(raw_path_angle)) {
+      bool violation = !ford_a3_production_tx(msg);
+      return !violation;
+    }
+
 
     // These signals are not yet tested with the current safety limits
     bool violation = (raw_curvature_rate != FORD_CANFD_INACTIVE_CURVATURE_RATE) || ford_final_path_angle_checks(raw_path_angle) || (raw_path_offset != FORD_INACTIVE_PATH_OFFSET);
@@ -276,6 +284,7 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
 }
 
 static safety_config ford_init(uint16_t param) {
+  ford_a3_reset();
   // warning: quality flags are not yet checked in openpilot's CAN parser,
   // this may be the cause of blocked messages
   static RxCheck ford_rx_checks[] = {

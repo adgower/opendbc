@@ -7,9 +7,6 @@ are forced to zero in angle mode.
 
 Live map: path_angle = kappa_cmd * v_ego * curvature_factor
 
-Gain schedules are platform-specific. Expedition/Navigator uses ~1.425 (1.5x BOF baseline)
-based on real-world tuning data from BluePilot bp-dev-expedition.
-
 Human-turn mode-0: when the driver manually turns (steeringPressed + large wheel angle),
 lateral control is forced inactive (mode 0) so the PSCM releases cleanly.
 """
@@ -32,40 +29,26 @@ FORD_DBC_PATH_ANGLE_MIN = -0.5
 FORD_DBC_PATH_ANGLE_MAX = 0.5235
 
 
-# Per-platform gain defaults.
-# CAN vehicles (Escape MK4, Bronco Sport, Explorer, Maverick, Edge, Focus)
-_GAIN_CAN = (1.00, 1.15)
-# CAN-FD body-on-frame trucks (F-150, Lightning, Ranger)
-_GAIN_CANFD_BOF = (0.95, 0.95)
-# CAN-FD unibody SUVs (Mustang Mach-E, Escape MK4.5)
-_GAIN_CANFD_SUV = (1.00, 1.05)
-# Expedition MK4: 1.5x BOF CANFD values based on real-world tuning (bp-dev-expedition)
-_GAIN_EXPEDITION = (_GAIN_CANFD_BOF[0] * 1.5, _GAIN_CANFD_BOF[1] * 1.5)  # ~1.425, ~1.425
+# Neutral gain for non-tuned platforms (simple/neutral baseline)
+_GAIN_NEUTRAL = (1.0, 1.0)
 
-_CANFD_BOF_CARS = frozenset({
-  CAR.FORD_F_150_MK14,
-  CAR.FORD_F_150_LIGHTNING_MK1,
-  CAR.FORD_RANGER_MK2,
-})
-_CANFD_SUV_CARS = frozenset({
-  CAR.FORD_MUSTANG_MACH_E_MK1,
-  CAR.FORD_ESCAPE_MK4_5,
-})
+# PROVISIONAL FORK TUNING: Expedition gain from BluePilot bp-dev-expedition.
+# NOT Navigator-verified. Subject to change with real-world validation.
+_GAIN_EXPEDITION = (1.425, 1.425)
+
 _EXPEDITION_CARS = frozenset({
   CAR.FORD_EXPEDITION_MK4,
 })
 
 
 def _get_platform_gains(car_fingerprint: str) -> tuple[float, float]:
-  """Returns (low_curvature_gain, high_curvature_gain) for the platform."""
+  """Returns (low_curvature_gain, high_curvature_gain) for the platform.
+
+  Only Expedition has tuned gains (provisional). All other platforms use neutral 1.0.
+  """
   if car_fingerprint in _EXPEDITION_CARS:
     return _GAIN_EXPEDITION
-  elif car_fingerprint in _CANFD_BOF_CARS:
-    return _GAIN_CANFD_BOF
-  elif car_fingerprint in _CANFD_SUV_CARS:
-    return _GAIN_CANFD_SUV
-  else:
-    return _GAIN_CAN
+  return _GAIN_NEUTRAL
 
 
 # Soft ROC limit: path_angle rate-of-change per 20Hz frame.

@@ -6,51 +6,55 @@ from unittest.mock import MagicMock, patch
 
 from opendbc.car.ford.lateral_angle import (
   LateralAngle, HumanTurnDetector, AngleLateralResult,
-  _get_platform_gains, _GAIN_CAN, _GAIN_CANFD_BOF, _GAIN_CANFD_SUV, _GAIN_EXPEDITION,
+  _get_platform_gains, _GAIN_NEUTRAL, _GAIN_EXPEDITION,
   FORD_DBC_PATH_ANGLE_MIN, FORD_DBC_PATH_ANGLE_MAX,
 )
 from opendbc.car.ford.values import CAR
 
 
 class TestGetPlatformGains(unittest.TestCase):
-  """Tests for _get_platform_gains function."""
+  """Tests for _get_platform_gains function.
+
+  Only Expedition has tuned gains (provisional fork tuning from bp-dev-expedition).
+  All other platforms use neutral 1.0 gains.
+  """
 
   def test_expedition_gains(self):
-    """Expedition should use 1.5x BOF gains."""
+    """Expedition should use provisional fork tuning gains (1.425, 1.425)."""
     gains = _get_platform_gains(CAR.FORD_EXPEDITION_MK4)
     self.assertEqual(gains, _GAIN_EXPEDITION)
     self.assertAlmostEqual(gains[0], 1.425, places=3)
     self.assertAlmostEqual(gains[1], 1.425, places=3)
 
-  def test_f150_gains(self):
-    """F-150 should use BOF CANFD gains."""
+  def test_f150_uses_neutral_gains(self):
+    """F-150 should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_F_150_MK14)
-    self.assertEqual(gains, _GAIN_CANFD_BOF)
+    self.assertEqual(gains, _GAIN_NEUTRAL)
 
-  def test_lightning_gains(self):
-    """F-150 Lightning should use BOF CANFD gains."""
+  def test_lightning_uses_neutral_gains(self):
+    """F-150 Lightning should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_F_150_LIGHTNING_MK1)
-    self.assertEqual(gains, _GAIN_CANFD_BOF)
+    self.assertEqual(gains, _GAIN_NEUTRAL)
 
-  def test_ranger_gains(self):
-    """Ranger should use BOF CANFD gains."""
+  def test_ranger_uses_neutral_gains(self):
+    """Ranger should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_RANGER_MK2)
-    self.assertEqual(gains, _GAIN_CANFD_BOF)
+    self.assertEqual(gains, _GAIN_NEUTRAL)
 
-  def test_mach_e_gains(self):
-    """Mustang Mach-E should use SUV CANFD gains."""
+  def test_mach_e_uses_neutral_gains(self):
+    """Mustang Mach-E should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_MUSTANG_MACH_E_MK1)
-    self.assertEqual(gains, _GAIN_CANFD_SUV)
+    self.assertEqual(gains, _GAIN_NEUTRAL)
 
-  def test_escape_mk4_5_gains(self):
-    """Escape MK4.5 should use SUV CANFD gains."""
+  def test_escape_mk4_5_uses_neutral_gains(self):
+    """Escape MK4.5 should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_ESCAPE_MK4_5)
-    self.assertEqual(gains, _GAIN_CANFD_SUV)
+    self.assertEqual(gains, _GAIN_NEUTRAL)
 
-  def test_can_vehicle_gains(self):
-    """CAN vehicles should use CAN gains."""
+  def test_can_vehicle_uses_neutral_gains(self):
+    """CAN vehicles should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_ESCAPE_MK4)
-    self.assertEqual(gains, _GAIN_CAN)
+    self.assertEqual(gains, _GAIN_NEUTRAL)
 
 
 class TestHumanTurnDetector(unittest.TestCase):

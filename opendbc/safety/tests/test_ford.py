@@ -572,5 +572,124 @@ class TestFordCANFDLongitudinalSafety(TestFordLongitudinalSafetyBase):
     self.safety.init_tests()
 
 
+class TestFordCANFDAngleModeSafety(TestFordCANFDLongitudinalSafety):
+  """Tests for Ford angle mode lateral control (path_angle-primary)."""
+
+  def _set_angle_mode_engaged(self, engaged: bool, shadow_curvature: float = 0.0):
+    """Send LKA message with angle_mode_engaged and shadow_curvature."""
+    # Pack angle_mode_engaged and shadow_curvature into Lane_Assist_Data1
+    # Byte 4 bit 0: angle_mode_engaged
+    # Bytes 5-6: shadow_curvature (int16, scale 1e-6 1/m)
+    shadow_raw = int(round(shadow_curvature / 1e-6))
+    shadow_raw = max(-32768, min(32767, shadow_raw)) & 0xFFFF
+    values = {
+      "LkaActvStats_D2_Req": 0,  # action must be 0
+    }
+    # Create the base message using CANPacker (not safety version)
+    addr, dat, bus = self.packer.make_can_msg("Lane_Assist_Data1", 0, values)
+    dat = bytearray(dat)
+    dat[4] |= 1 if engaged else 0
+    dat[5] = (shadow_raw >> 8) & 0xFF
+    dat[6] = shadow_raw & 0xFF
+    # Convert to safety packet and TX
+    msg = libsafety_py.make_CANPacket(addr, bus, bytes(dat))
+    self._tx(msg)
+
+  def _angle_mode_lat_ctl2_msg(self, enabled: bool, path_angle: float, increment_timer: bool = True):
+    """Send LateralMotionControl2 message with angle mode (curvature=0)."""
+    if increment_timer:
+      self.safety.set_timer(self.cnt_lat_ctl * int(1e6 / self.LATERAL_FREQUENCY))
+      self.__class__.cnt_lat_ctl += 1
+    values = {
+      "LatCtl_D2_Rq": 1 if enabled else 0,
+      "LatCtlPathOffst_L_Actl": 0,             # path_offset = 0 in angle mode
+      "LatCtlPath_An_Actl": path_angle,        # path angle in radians
+      "LatCtlCrv_NoRate2_Actl": 0,             # curvature_rate = 0 in angle mode
+      "LatCtlCurv_No_Actl": 0,                 # curvature = 0 in angle mode
+    }
+    return self.packer.make_can_msg_safety("LateralMotionControl2", 0, values)
+
+  def test_angle_mode_path_angle_allowed(self):
+    """Test that path_angle is allowed when angle_mode_engaged is set."""
+    self.safety.set_controls_allowed(True)
+    self._reset_curvature_measurement(0, 15)
+
+    # Set angle mode engaged
+    self._set_angle_mode_engaged(True, shadow_curvature=0.0)
+
+    # Send inactive message first to reset path_angle_last to 0
+    self._tx(self._angle_mode_lat_ctl2_msg(False, 0.0))
+
+    # Start from 0 (initializes path_angle_last)
+    self.assertTrue(self._tx(self._angle_mode_lat_ctl2_msg(True, 0.0)))
+
+    # Gradually ramp up path_angle (ROC limited)
+    for pa in np.arange(0, 0.1, 0.02):
+      self.assertTrue(self._tx(self._angle_mode_lat_ctl2_msg(True, pa)))
+
+  def test_angle_mode_path_angle_full_range(self):
+    """Test that full DBC path_angle range is allowed in angle mode."""
+    self.safety.set_controls_allowed(True)
+    self._reset_curvature_measurement(0, 15)
+
+    # Set angle mode engaged
+    self._set_angle_mode_engaged(True, shadow_curvature=0.0)
+
+    # Send inactive message first to reset path_angle_last to 0
+    self._tx(self._angle_mode_lat_ctl2_msg(False, 0.0))
+
+    # Ramp up to large path_angle (within ROC limits)
+    # At 15 m/s, ROC is ~0.04335 rad/frame plus fudge factor and +1, use 0.03 step
+    for pa in np.arange(0, 0.5, 0.03):
+      self.assertTrue(self._tx(self._angle_mode_lat_ctl2_msg(True, pa)))
+
+  def test_angle_mode_curvature_must_be_zero(self):
+    """Test that non-zero curvature is blocked in angle mode."""
+    self.safety.set_controls_allowed(True)
+    self._reset_curvature_measurement(0, 15)
+
+    # Set angle mode engaged
+    self._set_angle_mode_engaged(True, shadow_curvature=0.0)
+
+    # Non-zero curvature should be blocked
+    values = {
+      "LatCtl_D2_Rq": 1,
+      "LatCtlPathOffst_L_Actl": 0,
+      "LatCtlPath_An_Actl": 0.1,
+      "LatCtlCrv_NoRate2_Actl": 0,
+      "LatCtlCurv_No_Actl": 0.01,  # non-zero curvature
+    }
+    self.assertFalse(self._tx(self.packer.make_can_msg_safety("LateralMotionControl2", 0, values)))
+
+  def test_angle_mode_path_angle_blocked_without_controls(self):
+    """Test that path_angle is blocked when controls not allowed."""
+    self.safety.set_controls_allowed(False)
+    self._reset_curvature_measurement(0, 15)
+
+    # Set angle mode engaged
+    self._set_angle_mode_engaged(True, shadow_curvature=0.0)
+
+    # Path angle should be blocked
+    self.assertFalse(self._tx(self._angle_mode_lat_ctl2_msg(True, 0.1)))
+
+  def test_curvature_mode_unchanged(self):
+    """Test that curvature mode works unchanged when angle_mode is not engaged."""
+    self.safety.set_controls_allowed(True)
+    self._reset_curvature_measurement(0, 15)
+
+    # Angle mode NOT engaged (default)
+    self._set_angle_mode_engaged(False)
+
+    # Path angle should be blocked (must be at inactive sentinel in curvature mode)
+    values = {
+      "LatCtl_D2_Rq": 1,
+      "LatCtlPathOffst_L_Actl": 0,
+      "LatCtlPath_An_Actl": 0.1,  # non-zero path_angle
+      "LatCtlCrv_NoRate2_Actl": 0,
+      "LatCtlCurv_No_Actl": 0,
+    }
+    self.assertFalse(self._tx(self.packer.make_can_msg_safety("LateralMotionControl2", 0, values)))
+
+
 if __name__ == "__main__":
   unittest.main()

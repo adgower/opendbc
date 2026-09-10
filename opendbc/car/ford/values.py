@@ -42,11 +42,23 @@ class CarControllerParams:
 class FordSafetyFlags(IntFlag):
   LONG_CONTROL = 1
   CANFD = 2
+  ANGLE = 4
 
 
 class FordFlags(IntFlag):
   # Static flags
   CANFD = 1
+
+
+class FordPrefLateralControl(IntFlag):
+  """Lateral control mode preference for Ford vehicles.
+
+  Fork policy: default to angle for improved steering feel on supported platforms.
+  curvature (0) = stock upstream curvature-only mode
+  angle (1) = path_angle-primary mode with c0/c2/c3 zeroed
+  """
+  curvature = 0
+  angle = 1
 
 
 class RADAR:

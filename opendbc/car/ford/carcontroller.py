@@ -3,7 +3,8 @@ import numpy as np
 from opendbc.can import CANPacker
 from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, apply_hysteresis, structs
 from opendbc.car.ford import fordcan
-from opendbc.car.ford.values import CarControllerParams, FordFlags, CAR
+from opendbc.car.ford.lateral_angle import LateralAngle
+from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
 LongCtrlState = structs.CarControl.Actuators.LongControlState
@@ -49,6 +50,12 @@ class CarController(CarControllerBase):
     self.lead_distance_bars_last = None
     self.distance_bar_frame = 0
 
+    # Fork policy: default to angle mode for improved steering feel
+    self.lateral_control_mode = FordPrefLateralControl.angle
+    self.lateral_angle = LateralAngle(CP)
+    self.angle_mode_engaged = False
+    self.shadow_curvature = 0.0
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
 
@@ -74,40 +81,58 @@ class CarController(CarControllerBase):
     ### lateral control ###
     # send steer msg at 20Hz
     if (self.frame % CarControllerParams.STEER_STEP) == 0:
-      # Bronco and some other cars consistently overshoot curv requests
-      # Apply some deadzone + smoothing convergence to avoid oscillations
-      if self.CP.carFingerprint in (CAR.FORD_BRONCO_SPORT_MK1, CAR.FORD_F_150_MK14):
-        self.anti_overshoot_curvature_last = anti_overshoot(actuators.curvature, self.anti_overshoot_curvature_last, CS.out.vEgoRaw)
-        apply_curvature = self.anti_overshoot_curvature_last
-      else:
-        apply_curvature = actuators.curvature
+      # Determine lateral control mode
+      use_angle_mode = self.lateral_control_mode == FordPrefLateralControl.angle and (self.CP.flags & FordFlags.CANFD)
 
-      # apply rate limits, curvature error limit, and clip to signal range
-      current_curvature = -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
-      # No blending at low speed due to lack of torque wind-up and inaccurate current curvature
-      if CS.out.vEgoRaw > 9:
-        apply_curvature = float(np.clip(apply_curvature, current_curvature - CarControllerParams.CURVATURE_ERROR,
-                                        current_curvature + CarControllerParams.CURVATURE_ERROR))
-      apply_curvature = CarControllerParams.CURVATURE_LIMITS.apply_limits(apply_curvature, self.apply_curvature_last, CS.out.vEgoRaw,
-                                                                          0., CC.latActive, CarControllerParams.STEER_STEP)
+      if use_angle_mode:
+        # Angle mode: path_angle is the actuator; c0/c2/c3 are zero
+        angle_result = self.lateral_angle.update(CC, CS, actuators)
+        lat_active = CC.latActive and not self.lateral_angle.human_turn_active
+
+        # In angle mode, curvature is held at 0 (inactive sentinel) on the wire
+        apply_curvature = 0.0
+        path_angle = angle_result.path_angle
+        self.shadow_curvature = angle_result.shadow_curvature
+        self.angle_mode_engaged = CC.latActive
+      else:
+        # Curvature mode: stock upstream behavior
+        # Bronco and some other cars consistently overshoot curv requests
+        # Apply some deadzone + smoothing convergence to avoid oscillations
+        if self.CP.carFingerprint in (CAR.FORD_BRONCO_SPORT_MK1, CAR.FORD_F_150_MK14):
+          self.anti_overshoot_curvature_last = anti_overshoot(actuators.curvature, self.anti_overshoot_curvature_last, CS.out.vEgoRaw)
+          apply_curvature = self.anti_overshoot_curvature_last
+        else:
+          apply_curvature = actuators.curvature
+
+        # apply rate limits, curvature error limit, and clip to signal range
+        current_curvature = -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
+        # No blending at low speed due to lack of torque wind-up and inaccurate current curvature
+        if CS.out.vEgoRaw > 9:
+          apply_curvature = float(np.clip(apply_curvature, current_curvature - CarControllerParams.CURVATURE_ERROR,
+                                         current_curvature + CarControllerParams.CURVATURE_ERROR))
+        apply_curvature = CarControllerParams.CURVATURE_LIMITS.apply_limits(apply_curvature, self.apply_curvature_last, CS.out.vEgoRaw,
+                                                                            0., CC.latActive, CarControllerParams.STEER_STEP)
+        lat_active = CC.latActive
+        path_angle = 0.0
+        self.angle_mode_engaged = False
+        self.shadow_curvature = 0.0
+
       self.apply_curvature_last = apply_curvature
 
       if self.CP.flags & FordFlags.CANFD:
-        # TODO: extended mode
-        # Ford uses four individual signals to dictate how to drive to the car. Curvature alone (limited to 0.02 m^-1)
-        # can actuate the steering for a large portion of any lateral movements. However, in order to get further control on
-        # steer actuation, the other three signals are necessary. Ford controls vehicles differently than most other makes.
-        # A detailed explanation on ford control can be found here:
-        # https://www.f150gen14.com/forum/threads/introducing-bluepilot-a-ford-specific-fork-for-comma3x-openpilot.24241/#post-457706
-        mode = 1 if CC.latActive else 0
+        mode = 1 if lat_active else 0
         counter = (self.frame // CarControllerParams.STEER_STEP) % 0x10
-        can_sends.append(fordcan.create_lat_ctl2_msg(self.packer, self.CAN, mode, 0., 0., -self.apply_curvature_last, 0., counter))
+        # In angle mode: c0=0, c1=path_angle, c2=0, c3=0
+        # In curvature mode: c0=0, c1=0, c2=curvature, c3=0
+        can_sends.append(fordcan.create_lat_ctl2_msg(self.packer, self.CAN, mode, 0., -path_angle, -apply_curvature, 0., counter))
       else:
-        can_sends.append(fordcan.create_lat_ctl_msg(self.packer, self.CAN, CC.latActive, 0., 0., -self.apply_curvature_last, 0.))
+        can_sends.append(fordcan.create_lat_ctl_msg(self.packer, self.CAN, lat_active, 0., -path_angle, -apply_curvature, 0.))
 
     # send lka msg at 33Hz
     if (self.frame % CarControllerParams.LKA_STEP) == 0:
-      can_sends.append(fordcan.create_lka_msg(self.packer, self.CAN))
+      # Pass angle mode state to ford.h via unused bytes in Lane_Assist_Data1
+      # shadow_curvature is negated to match wire sign convention (see fordcan.py)
+      can_sends.append(fordcan.create_lka_msg(self.packer, self.CAN, self.angle_mode_engaged, -self.shadow_curvature))
 
     ### longitudinal control ###
     # send acc msg at 50Hz

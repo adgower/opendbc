@@ -31,16 +31,37 @@ def calculate_lat_ctl2_checksum(mode: int, counter: int, dat: bytearray) -> int:
   return 0xFF - (checksum & 0xFF)
 
 
-def create_lka_msg(packer, CAN: CanBus):
+_BP_LKA_SHADOW_CURVATURE_SCALE = 1e-6  # 1/meter per raw unit, matches ford.h's decode
+
+
+def create_lka_msg(packer, CAN: CanBus, angle_mode_engaged: bool = False, shadow_curvature: float = 0.0):
   """
-  Creates an empty CAN message for the Ford LKA Command.
+  Creates a CAN message for the Ford LKA Command.
 
   This command can apply "Lane Keeping Aid" maneuvers, which are subject to the PSCM lockout.
 
+  In angle mode, this message also carries out-of-band state for ford.h safety:
+    - angle_mode_engaged: bit flag indicating angle control is active
+    - shadow_curvature: the curvature (kappa) that path_angle was derived from,
+      used by ford.h's angle-mode deviation check
+
+  Byte layout (bits not covered by any Lane_Assist_Data1 DBC signal):
+    byte 4 bit 0:     angle_mode_engaged
+    byte 5-6:         shadow_curvature (int16, scale 1e-6 1/m)
+
   Frequency is 33Hz.
   """
+  addr, dat, bus = packer.make_can_msg("Lane_Assist_Data1", CAN.main, {})
+  dat = bytearray(dat)
 
-  return packer.make_can_msg("Lane_Assist_Data1", CAN.main, {})
+  shadow_curvature_raw = int(round(shadow_curvature / _BP_LKA_SHADOW_CURVATURE_SCALE))
+  shadow_curvature_raw = max(-32768, min(32767, shadow_curvature_raw)) & 0xFFFF
+
+  dat[4] |= 1 if angle_mode_engaged else 0
+  dat[5] = (shadow_curvature_raw >> 8) & 0xFF
+  dat[6] = shadow_curvature_raw & 0xFF
+
+  return addr, bytes(dat), bus
 
 
 def create_lat_ctl_msg(packer, CAN: CanBus, lat_active: bool, path_offset: float, path_angle: float, curvature: float,

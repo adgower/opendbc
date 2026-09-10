@@ -58,6 +58,8 @@ class CarController(CarControllerBase):
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
+    lka_msg_sent = False
+    angle_mode_engaged_last = self.angle_mode_engaged
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -120,6 +122,12 @@ class CarController(CarControllerBase):
       self.apply_curvature_last = apply_curvature
 
       if self.CP.flags & FordFlags.CANFD:
+        # Panda must receive the mode transition before the first request using it,
+        # including steering frames between the regular 33 Hz LKA updates.
+        if use_angle_mode and self.angle_mode_engaged and ((self.frame % CarControllerParams.LKA_STEP) == 0 or
+                                                         self.angle_mode_engaged != angle_mode_engaged_last):
+          can_sends.append(fordcan.create_lka_msg(self.packer, self.CAN, self.angle_mode_engaged, -self.shadow_curvature))
+          lka_msg_sent = True
         mode = 1 if lat_active else 0
         counter = (self.frame // CarControllerParams.STEER_STEP) % 0x10
         # In angle mode: c0=0, c1=path_angle, c2=0, c3=0
@@ -128,8 +136,9 @@ class CarController(CarControllerBase):
       else:
         can_sends.append(fordcan.create_lat_ctl_msg(self.packer, self.CAN, lat_active, 0., -path_angle, -apply_curvature, 0.))
 
-    # send lka msg at 33Hz
-    if (self.frame % CarControllerParams.LKA_STEP) == 0:
+    # Send LKA at 33 Hz and on mode transitions. On disengagement the neutral
+    # steering request must reset Panda's angle history before clearing its mode.
+    if ((self.frame % CarControllerParams.LKA_STEP) == 0 or self.angle_mode_engaged != angle_mode_engaged_last) and not lka_msg_sent:
       # Pass angle mode state to ford.h via unused bytes in Lane_Assist_Data1
       # shadow_curvature is negated to match wire sign convention (see fordcan.py)
       can_sends.append(fordcan.create_lka_msg(self.packer, self.CAN, self.angle_mode_engaged, -self.shadow_curvature))

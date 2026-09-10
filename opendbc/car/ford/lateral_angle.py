@@ -10,11 +10,14 @@ Live map: path_angle = kappa_cmd * v_ego * curvature_factor
 Human-turn mode-0: when the driver manually turns (steeringPressed + large wheel angle),
 lateral control is forced inactive (mode 0) so the PSCM releases cleanly.
 """
+import math
 from dataclasses import dataclass
 from numpy import clip, interp
 
 from opendbc.car import DT_CTRL
-from opendbc.car.ford.values import CAR, CarControllerParams
+from opendbc.car.carlog import carlog
+from opendbc.car.ford.values import CAR, CarControllerParams, FordFlags
+from opendbc.car.vehicle_model import VehicleModel
 
 
 @dataclass
@@ -94,6 +97,13 @@ class LateralAngle:
 
   def __init__(self, CP):
     self.CP = CP
+    # Private model: fixed initialization geometry, never learned ratio/stiffness, offset or roll.
+    self.pinion_model = VehicleModel(CP) if CP.flags & FordFlags.PINION_CURVATURE else None
+    if self.pinion_model is not None:
+      carlog.info("Ford pinion curvature enabled: wheelbase=%s steerRatio=%s mass=%s centerToFront=%s " +
+                  "tireStiffnessFront=%s tireStiffnessRear=%s flags=%s safetyParam=%s",
+                  CP.wheelbase, CP.steerRatio, CP.mass, CP.centerToFront, CP.tireStiffnessFront,
+                  CP.tireStiffnessRear, CP.flags, CP.safetyConfigs[-1].safetyParam)
     low_gain, high_gain = _get_platform_gains(CP.carFingerprint)
     self.gain_low_curv = low_gain
     self.gain_high_curv = high_gain
@@ -105,7 +115,9 @@ class LateralAngle:
     self.human_turn_active = False
 
   def get_current_curvature(self, CS) -> float:
-    """Returns measured curvature from yaw rate and vehicle speed."""
+    """Returns controller-sign curvature; preserves the raw CarState yaw rate."""
+    if self.pinion_model is not None:
+      return -self.pinion_model.calc_curvature(math.radians(CS.out.steeringAngleDeg), CS.out.vEgoRaw, 0.)
     return -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
 
   def update(self, CC, CS, actuators) -> AngleLateralResult:

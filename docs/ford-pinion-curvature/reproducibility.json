@@ -1,0 +1,25 @@
+{
+  "status": "pass",
+  "verification_date": "2026-09-10",
+  "raw_segments": 35,
+  "rejected_windows": 8,
+  "comparable_windows": 8,
+  "nonbrake_rejections": 6,
+  "brake_rejections": 2,
+  "comparison": "All complete route result dictionaries exactly equal to original after removing machine-specific segment path fields; model hash identical.",
+  "metadata_changes": [
+    "portable logical log paths",
+    "portable model source path",
+    "complete schema hashes",
+    "publication script hashes replace original machine-specific reproduction-input path keys"
+  ],
+  "original_evidence_sha256": "452c08952e4f6a08a3b4efd07be9ffe1714ff13061ca1adb6a3fb1dbd2e506f4",
+  "published_evidence_sha256": "a2ffbf2c0f3337ed987a4f43b04afbb4de571aafd0689be383598c91a5af1f48",
+  "script_sha256": {
+    "analyze.py": "8e1bcb0525915403bbc87f9c3a1ab36af99f541a696bf0740b004e6f541775b4",
+    "report.py": "57ba78cd899ac24421350d5d8a61a0ced01c9136ba41f1ed6b4034698201b3d2",
+    "extract.py": "e9c4cbd6398272eac033996cb8f99af3f2618fe3288ec70241b8a43674134d6c"
+  },
+  "repository_style_verification": "Ruff check and format pass. Fresh full raw analysis after replacing mean with sum/size and formatting exactly reproduces all route result dictionaries and mappings.",
+  "rendered_addition": "All eight comparable clean-turn rows now include full plus/minus 10 second segment-local coverage, including cross-boundary windows."
+}

@@ -1,0 +1,1984 @@
+{
+  "schema_sha256": {
+    "deprecated.capnp": "b3aa5c13de40001ed7376cef858500fb003f7698f96131cd0db18d878fa1af0d",
+    "custom.capnp": "6b06a0d2d5ac6b902ca2f433c1663ed83ea4b41ba4c16cddfc7acd8a630be82d",
+    "car.capnp": "b971083a0cb3aed287ca9c54572d470fb798e633bc47611717f697b9e735f5a1",
+    "log.capnp": "f839ceeb3041dac6aea4b2f68f5afd52db0e8c3367dd1fe53eb83a2be7ad01cc",
+    "include/c++.capnp": "fb306076cd38c27af1aed20fac6395e9a46fbe5b5df6a248b5f1b6845a079c44"
+  },
+  "vehicle_model_source": "opendbc/car/vehicle_model.py",
+  "vehicle_model_sha256": "ddc2a93d9c2b2ef6c9a913a5aef4c51e2bc387db1f7640473657e5ade4e50fac",
+  "method": "Raw bus 0 0x7e pinion, 0x91 yaw; causal last-value alignment to deviceMotion.timestamp; extrinsics at deviceMotion publication; fixed recorded CP VehicleModel, stiffness 1, roll 0, offset 0; no fitting or lag correction; Comma projected vertical rate negated to Ford steering/yaw convention",
+  "routes": {
+    "postfix": {
+      "route": "00000007--ebffff8226",
+      "dongle": "0e09a1daaf2c4fd2",
+      "origin_logMonoTime": 38.510349203,
+      "origin_definition": "initial initData.logMonoTime; segment local zero is first raw CAN Event.logMonoTime, excludes repeated metadata",
+      "segments": [
+        {
+          "id": "00000007--ebffff8226--0",
+          "segment": 0,
+          "path": "postfix/logs/00000007--ebffff8226--0/rlog.zst",
+          "sha256": "5cd2bf841f7d9a83380760d6040ee671bef577ab4fd3f65dcc350ffa80eeeecb",
+          "bytes": 6063070,
+          "mono_start": 38.480727432,
+          "mono_end": 99.5117522,
+          "route_start": -0.02962177099999508,
+          "route_end": 61.00140299700001
+        },
+        {
+          "id": "00000007--ebffff8226--1",
+          "segment": 1,
+          "path": "postfix/logs/00000007--ebffff8226--1/rlog.zst",
+          "sha256": "1e3cc859d76036d08aacfc12abc5d76c74202b16fdc92c4b5263cd432a4fee11",
+          "bytes": 8943127,
+          "mono_start": 99.52167194,
+          "mono_end": 159.512801604,
+          "route_start": 61.01132273700001,
+          "route_end": 121.002452401
+        },
+        {
+          "id": "00000007--ebffff8226--2",
+          "segment": 2,
+          "path": "postfix/logs/00000007--ebffff8226--2/rlog.zst",
+          "sha256": "89bd5b96b1c728bb19c08218a9a0592ff11eefa06ee4fe6de7ca0f7fcfb3ad86",
+          "bytes": 9231491,
+          "mono_start": 159.523116709,
+          "mono_end": 219.514313561,
+          "route_start": 121.01276750599999,
+          "route_end": 181.003964358
+        },
+        {
+          "id": "00000007--ebffff8226--3",
+          "segment": 3,
+          "path": "postfix/logs/00000007--ebffff8226--3/rlog.zst",
+          "sha256": "d76bd73eb3c1486ec5f27ed4eb84282364d7a57f384785dd408794fe8b7f241d",
+          "bytes": 9231853,
+          "mono_start": 219.524416529,
+          "mono_end": 279.518443173,
+          "route_start": 181.014067326,
+          "route_end": 241.00809396999998
+        },
+        {
+          "id": "00000007--ebffff8226--4",
+          "segment": 4,
+          "path": "postfix/logs/00000007--ebffff8226--4/rlog.zst",
+          "sha256": "c1d69bd9d50c4e19abe25f63297090ed3cf65177e61aa8fae9af30faa4df0e30",
+          "bytes": 9081161,
+          "mono_start": 279.52878484,
+          "mono_end": 339.518212786,
+          "route_start": 241.018435637,
+          "route_end": 301.007863583
+        },
+        {
+          "id": "00000007--ebffff8226--5",
+          "segment": 5,
+          "path": "postfix/logs/00000007--ebffff8226--5/rlog.zst",
+          "sha256": "00af099a504cab2047e8c3546c0339c461a6fb3767042d1d52d8bce080d2809d",
+          "bytes": 9180721,
+          "mono_start": 339.528260077,
+          "mono_end": 399.532437867,
+          "route_start": 301.01791087400005,
+          "route_end": 361.022088664
+        },
+        {
+          "id": "00000007--ebffff8226--6",
+          "segment": 6,
+          "path": "postfix/logs/00000007--ebffff8226--6/rlog.zst",
+          "sha256": "eeffaf9c7960040582c53a03c79f3b649d97a72d866e81384959adda3cab5804",
+          "bytes": 9362382,
+          "mono_start": 399.542804534,
+          "mono_end": 459.519866125,
+          "route_start": 361.03245533100005,
+          "route_end": 421.00951692200005
+        },
+        {
+          "id": "00000007--ebffff8226--7",
+          "segment": 7,
+          "path": "postfix/logs/00000007--ebffff8226--7/rlog.zst",
+          "sha256": "417ebae15fc2ba49ce48b7bf6723fddbca8512980ac80ac4c2fda398a184e532",
+          "bytes": 9097022,
+          "mono_start": 459.529739667,
+          "mono_end": 519.526651988,
+          "route_start": 421.019390464,
+          "route_end": 481.01630278500005
+        },
+        {
+          "id": "00000007--ebffff8226--8",
+          "segment": 8,
+          "path": "postfix/logs/00000007--ebffff8226--8/rlog.zst",
+          "sha256": "dd5f31985c18499e9ad7c5f491bfee86a7b4016d9ef179103d2a69adb3f6dd0d",
+          "bytes": 9255395,
+          "mono_start": 519.53656954,
+          "mono_end": 579.522325246,
+          "route_start": 481.026220337,
+          "route_end": 541.011976043
+        },
+        {
+          "id": "00000007--ebffff8226--9",
+          "segment": 9,
+          "path": "postfix/logs/00000007--ebffff8226--9/rlog.zst",
+          "sha256": "000bb0db3df9ce0920565a4d2535ac0dc048039698456da9370b38897b81a1ca",
+          "bytes": 9253653,
+          "mono_start": 579.531445038,
+          "mono_end": 639.536157828,
+          "route_start": 541.021095835,
+          "route_end": 601.025808625
+        },
+        {
+          "id": "00000007--ebffff8226--10",
+          "segment": 10,
+          "path": "postfix/logs/00000007--ebffff8226--10/rlog.zst",
+          "sha256": "6e67113c09ed4a5778ebaae2562c6f0ccd7c2a1f7b2e8c0903b677119d1555e6",
+          "bytes": 8531119,
+          "mono_start": 639.546167776,
+          "mono_end": 699.524192648,
+          "route_start": 601.0358185729999,
+          "route_end": 661.013843445
+        },
+        {
+          "id": "00000007--ebffff8226--11",
+          "segment": 11,
+          "path": "postfix/logs/00000007--ebffff8226--11/rlog.zst",
+          "sha256": "a155c0d3644f51c8710c00991a806fe35d79b59c376f040e58c253acd68d494f",
+          "bytes": 9608468,
+          "mono_start": 699.536441451,
+          "mono_end": 759.525504969,
+          "route_start": 661.0260922479999,
+          "route_end": 721.015155766
+        },
+        {
+          "id": "00000007--ebffff8226--12",
+          "segment": 12,
+          "path": "postfix/logs/00000007--ebffff8226--12/rlog.zst",
+          "sha256": "3365b69f226a7ba7f2399b22f8f3e4c9e456caa08289115f0be27e2a29e34a6b",
+          "bytes": 9354848,
+          "mono_start": 759.537700021,
+          "mono_end": 819.531645155,
+          "route_start": 721.027350818,
+          "route_end": 781.021295952
+        },
+        {
+          "id": "00000007--ebffff8226--13",
+          "segment": 13,
+          "path": "postfix/logs/00000007--ebffff8226--13/rlog.zst",
+          "sha256": "19fdfcb5c26025653af0004bca20e9783e7239b746c80c62dbbfbc7ff7bf6413",
+          "bytes": 9327890,
+          "mono_start": 819.539803019,
+          "mono_end": 879.534641226,
+          "route_start": 781.029453816,
+          "route_end": 841.0242920229999
+        },
+        {
+          "id": "00000007--ebffff8226--14",
+          "segment": 14,
+          "path": "postfix/logs/00000007--ebffff8226--14/rlog.zst",
+          "sha256": "4c5f3539fb988378c592a23ca89cd26ee09d3238c5de0d8f95fa323e13163585",
+          "bytes": 9105357,
+          "mono_start": 879.541565028,
+          "mono_end": 939.534846515,
+          "route_start": 841.031215825,
+          "route_end": 901.024497312
+        },
+        {
+          "id": "00000007--ebffff8226--15",
+          "segment": 15,
+          "path": "postfix/logs/00000007--ebffff8226--15/rlog.zst",
+          "sha256": "a01f1eda7af9a9112e78503ee22c633f47f2bcfc06a59283a07d340d501dd532",
+          "bytes": 8952432,
+          "mono_start": 939.545092609,
+          "mono_end": 999.533183628,
+          "route_start": 901.034743406,
+          "route_end": 961.0228344249999
+        },
+        {
+          "id": "00000007--ebffff8226--16",
+          "segment": 16,
+          "path": "postfix/logs/00000007--ebffff8226--16/rlog.zst",
+          "sha256": "5018518005dbda808f7805a1246cf24e33b097a26eb834d2baf63a56b65d04e0",
+          "bytes": 9063793,
+          "mono_start": 999.542319149,
+          "mono_end": 1059.554182303,
+          "route_start": 961.031969946,
+          "route_end": 1021.0438331
+        },
+        {
+          "id": "00000007--ebffff8226--17",
+          "segment": 17,
+          "path": "postfix/logs/00000007--ebffff8226--17/rlog.zst",
+          "sha256": "a21743a5603d0a40c762aa622253b1f5dd32cf097fd6754a5669ba8f7e9c53ea",
+          "bytes": 9023489,
+          "mono_start": 1059.565292042,
+          "mono_end": 1119.527080769,
+          "route_start": 1021.054942839,
+          "route_end": 1081.0167315659999
+        },
+        {
+          "id": "00000007--ebffff8226--18",
+          "segment": 18,
+          "path": "postfix/logs/00000007--ebffff8226--18/rlog.zst",
+          "sha256": "a35bb348881f6181444a67266980a41fe0413d4d4b57cdf36f114c81f41d3322",
+          "bytes": 9137723,
+          "mono_start": 1119.537377019,
+          "mono_end": 1179.537809445,
+          "route_start": 1081.0270278159999,
+          "route_end": 1141.027460242
+        },
+        {
+          "id": "00000007--ebffff8226--19",
+          "segment": 19,
+          "path": "postfix/logs/00000007--ebffff8226--19/rlog.zst",
+          "sha256": "fe52c542f08aee248bc13326f263e5077670335ce0f3f76f24d4811a5667789e",
+          "bytes": 8553018,
+          "mono_start": 1179.54826184,
+          "mono_end": 1233.951991351,
+          "route_start": 1141.0379126369999,
+          "route_end": 1195.441642148
+        }
+      ],
+      "carParams": {
+        "mass": 2878.0,
+        "rotationalInertia": 6535.75146484375,
+        "wheelbase": 3.1115000247955322,
+        "centerToFront": 1.3690600395202637,
+        "steerRatioRear": 0.0,
+        "tireStiffnessFront": 353037.28125,
+        "tireStiffnessRear": 438491.46875,
+        "steerRatio": 19.600000381469727
+      },
+      "bus_counts": {
+        "(126, 0)": 119537,
+        "(126, 2)": 1845,
+        "(145, 0)": 119578,
+        "(145, 2)": 1847,
+        "(126, 130)": 117676,
+        "(145, 130)": 117714
+      },
+      "pinion_quality": {
+        "3": 119537
+      },
+      "yaw_quality": {
+        "3": 119578
+      },
+      "timing": {
+        "device_publish_minus_motion": {
+          "n": 23349,
+          "median": 0.024152759999992668,
+          "p10": 0.019833687999971518,
+          "p90": 0.027965469199983772,
+          "rmse": 1.7513010517956586
+        },
+        "pinion_age_at_motion": {
+          "n": 23333,
+          "median": 0.005247240000016973,
+          "p10": 0.001032479399930253,
+          "p90": 0.009701594000034675,
+          "rmse": 0.006538365164108371
+        },
+        "yaw_age_at_motion": {
+          "n": 23333,
+          "median": 0.0052226039999823115,
+          "p10": 0.0010404596000171298,
+          "p90": 0.009615999400000418,
+          "rmse": 0.0064748188450931
+        }
+      },
+      "metrics": {
+        "moving_gt5mps": {
+          "pinion_vs_comma": {
+            "correlation": 0.9961400895530155,
+            "residual": {
+              "n": 17210,
+              "median": -0.0017616262706383321,
+              "p10": -0.01205110492184465,
+              "p90": 0.005293721818210795,
+              "rmse": 0.00961381488154731
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9996672431385367,
+            "residual": {
+              "n": 17210,
+              "median": -0.01764725448771668,
+              "p10": -0.0203033168189077,
+              "p90": -0.015069564797531465,
+              "rmse": 0.01781723908331838
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.9960303768963413,
+            "residual": {
+              "n": 17210,
+              "median": 0.01589445068220596,
+              "p10": 0.005404721269788229,
+              "p90": 0.022893605073561286,
+              "rmse": 0.01735083818770639
+            }
+          }
+        },
+        "active_moving": {
+          "pinion_vs_comma": {
+            "correlation": 0.994722420782723,
+            "residual": {
+              "n": 16105,
+              "median": -0.0019056012342063937,
+              "p10": -0.012061538387209613,
+              "p90": 0.004809938529835451,
+              "rmse": 0.009267949193533895
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9995067948595168,
+            "residual": {
+              "n": 16105,
+              "median": -0.017634700751427822,
+              "p10": -0.020286041095964012,
+              "p90": -0.015144408865315392,
+              "rmse": 0.017816785426894
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.9945511959090169,
+            "residual": {
+              "n": 16105,
+              "median": 0.015731464584435334,
+              "p10": 0.005356537838483477,
+              "p90": 0.022492526794522332,
+              "rmse": 0.01705273969566637
+            }
+          }
+        },
+        "straight_moving": {
+          "pinion_vs_comma": {
+            "correlation": 0.6824743644034558,
+            "residual": {
+              "n": 7582,
+              "median": -0.00041944869111363214,
+              "p10": -0.006765974548692253,
+              "p90": 0.004068886849753874,
+              "rmse": 0.004548635603417849
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9373112548726904,
+            "residual": {
+              "n": 7582,
+              "median": -0.017552906748928364,
+              "p10": -0.01966138529966688,
+              "p90": -0.015279572541487145,
+              "rmse": 0.017617603675375883
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.65923046035017,
+            "residual": {
+              "n": 7582,
+              "median": 0.01721923189174832,
+              "p10": 0.010475758562509575,
+              "p90": 0.02185893020556176,
+              "rmse": 0.017296661622428187
+            }
+          }
+        },
+        "turning_moving": {
+          "pinion_vs_comma": {
+            "correlation": 0.9975273237091122,
+            "residual": {
+              "n": 4143,
+              "median": -0.003551094883189873,
+              "p10": -0.02621664661929741,
+              "p90": 0.018929902076023436,
+              "rmse": 0.01697077946485795
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9998963741759688,
+            "residual": {
+              "n": 4143,
+              "median": -0.018036163974706053,
+              "p10": -0.02198722470602657,
+              "p90": -0.014076178619557275,
+              "rmse": 0.018320044913092155
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.9975554386635648,
+            "residual": {
+              "n": 4143,
+              "median": 0.01416057329427333,
+              "p10": -0.005141117146314268,
+              "p90": 0.03453245257962595,
+              "rmse": 0.02023664598040662
+            }
+          }
+        },
+        "stopped": {
+          "pinion_vs_comma": {
+            "correlation": 0.1308858345230608,
+            "residual": {
+              "n": 3253,
+              "median": 1.8298760808985246e-05,
+              "p10": -0.000391314463606448,
+              "p90": 0.0004796853147829097,
+              "rmse": 0.001079117186820916
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.6467325857015247,
+            "residual": {
+              "n": 3253,
+              "median": -0.017447736888465414,
+              "p10": -0.01852584963866912,
+              "p90": -0.016244890127114622,
+              "rmse": 0.017452396113571543
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.13234087785772247,
+            "residual": {
+              "n": 3253,
+              "median": 0.017399999999999416,
+              "p10": 0.016199999999999548,
+              "p90": 0.018599999999999284,
+              "rmse": 0.01751245509693096
+            }
+          }
+        }
+      },
+      "reject_windows": [
+        {
+          "id": "reject-1",
+          "brake": false,
+          "driver": false,
+          "mono_time": 202.31428164,
+          "route_seconds": 163.803932437,
+          "target_segments": [
+            {
+              "segment": 2,
+              "segment_local_seconds": 42.791164931
+            }
+          ],
+          "window_route": [
+            153.803932437,
+            173.803932437
+          ],
+          "window_segments": [
+            {
+              "segment": 2,
+              "local_start": 32.791164931,
+              "local_end": 52.791164931
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9975349921613683,
+            "residual": {
+              "n": 326,
+              "median": -0.007642313075071322,
+              "p10": -0.015172865853866362,
+              "p90": 0.005675639146753467,
+              "rmse": 0.011514270414268436
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9998664919030316,
+            "residual": {
+              "n": 326,
+              "median": -0.01719835364533398,
+              "p10": -0.021162945822219337,
+              "p90": -0.014674163577814899,
+              "rmse": 0.017823494894830632
+            }
+          },
+          "speed_mps": {
+            "n": 326,
+            "median": 12.058333396911621,
+            "p10": 6.788888931274414,
+            "p90": 13.256944179534912,
+            "rmse": 11.318327914162685
+          },
+          "comma_yaw_rad_s": {
+            "n": 326,
+            "median": 0.005422391838341021,
+            "p10": -0.2126187789369156,
+            "p90": 0.0717271342515795,
+            "rmse": 0.1091955682208552
+          },
+          "nearest_motion_sample": {
+            "mono_time": 202.309331379,
+            "time_delta_to_event": -0.004950260999976308,
+            "valid": true,
+            "v_mps": 11.130555152893066,
+            "pinion_yaw": 0.0017916089072091883,
+            "raw_yaw": -0.011800000000000033,
+            "comma_yaw": 0.005462243590487826
+          }
+        },
+        {
+          "id": "reject-2",
+          "brake": false,
+          "driver": false,
+          "mono_time": 202.616612213,
+          "route_seconds": 164.10626301,
+          "target_segments": [
+            {
+              "segment": 2,
+              "segment_local_seconds": 43.093495504
+            }
+          ],
+          "window_route": [
+            154.10626301,
+            174.10626301
+          ],
+          "window_segments": [
+            {
+              "segment": 2,
+              "local_start": 33.093495504,
+              "local_end": 53.093495504
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9975335819302628,
+            "residual": {
+              "n": 332,
+              "median": -0.0075924918698420316,
+              "p10": -0.015059854914370745,
+              "p90": 0.005642763681978112,
+              "rmse": 0.011423450617019137
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.999864931934003,
+            "residual": {
+              "n": 332,
+              "median": -0.017195645352393138,
+              "p10": -0.02112717647994545,
+              "p90": -0.014666859594043876,
+              "rmse": 0.017804052786424423
+            }
+          },
+          "speed_mps": {
+            "n": 332,
+            "median": 12.086111068725586,
+            "p10": 6.789166688919067,
+            "p90": 13.26388931274414,
+            "rmse": 11.358054521945942
+          },
+          "comma_yaw_rad_s": {
+            "n": 332,
+            "median": 0.005297495925700619,
+            "p10": -0.2045588261005993,
+            "p90": 0.07146717914286259,
+            "rmse": 0.10820448744070857
+          },
+          "nearest_motion_sample": {
+            "mono_time": 202.607390285,
+            "time_delta_to_event": -0.009221927999988111,
+            "valid": true,
+            "v_mps": 11.33055591583252,
+            "pinion_yaw": 0.004245899068173183,
+            "raw_yaw": -0.008999999999999453,
+            "comma_yaw": 0.0066847252424514425
+          }
+        },
+        {
+          "id": "reject-3",
+          "brake": true,
+          "driver": false,
+          "mono_time": 503.185394859,
+          "route_seconds": 464.675045656,
+          "target_segments": [
+            {
+              "segment": 7,
+              "segment_local_seconds": 43.65565519199998
+            }
+          ],
+          "window_route": [
+            454.675045656,
+            474.675045656
+          ],
+          "window_segments": [
+            {
+              "segment": 7,
+              "local_start": 33.65565519199998,
+              "local_end": 53.65565519199998
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9854373990934165,
+            "residual": {
+              "n": 400,
+              "median": -0.006718882940913007,
+              "p10": -0.019004302619259887,
+              "p90": 0.0022224894934338452,
+              "rmse": 0.011094678307310372
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9971424560352897,
+            "residual": {
+              "n": 400,
+              "median": -0.018214475508297197,
+              "p10": -0.021288478994135916,
+              "p90": -0.014978475068170353,
+              "rmse": 0.018487120543840288
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 24.061111450195312,
+            "p10": 13.435555362701416,
+            "p90": 26.016944885253906,
+            "rmse": 22.477206761766574
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.00311401094064792,
+            "p10": -0.04702344655946139,
+            "p90": 0.022670147808539282,
+            "rmse": 0.03432517831158041
+          },
+          "nearest_motion_sample": {
+            "mono_time": 503.161988765,
+            "time_delta_to_event": -0.023406093999994937,
+            "valid": true,
+            "v_mps": 26.455554962158203,
+            "pinion_yaw": 0.00769613035498014,
+            "raw_yaw": 0.00020000000000042206,
+            "comma_yaw": 0.017088372449611235
+          }
+        },
+        {
+          "id": "reject-4",
+          "brake": false,
+          "driver": false,
+          "mono_time": 696.169303275,
+          "route_seconds": 657.6589540719999,
+          "target_segments": [
+            {
+              "segment": 10,
+              "segment_local_seconds": 56.623135499
+            }
+          ],
+          "window_route": [
+            647.6589540719999,
+            667.6589540719999
+          ],
+          "window_segments": [
+            {
+              "segment": 10,
+              "local_start": 46.623135499,
+              "local_end": 59.978024872000105
+            },
+            {
+              "segment": 11,
+              "local_start": 0,
+              "local_end": 6.632861823999974
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.996452867436441,
+            "residual": {
+              "n": 316,
+              "median": 0.0031032040627281122,
+              "p10": -0.0014356338554723665,
+              "p90": 0.023119257912362162,
+              "rmse": 0.017615306588605717
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9999422751818153,
+            "residual": {
+              "n": 316,
+              "median": -0.017386755198563524,
+              "p10": -0.019683981622469433,
+              "p90": -0.007611084810414337,
+              "rmse": 0.016606335063870485
+            }
+          },
+          "speed_mps": {
+            "n": 316,
+            "median": 13.186110973358154,
+            "p10": 6.8652777671813965,
+            "p90": 13.395833492279053,
+            "rmse": 11.992736561533226
+          },
+          "comma_yaw_rad_s": {
+            "n": 316,
+            "median": -0.0019339457461198617,
+            "p10": -0.011996123882291486,
+            "p90": 0.5166274354080396,
+            "rmse": 0.21708482783858388
+          },
+          "nearest_motion_sample": {
+            "mono_time": 696.161383274,
+            "time_delta_to_event": -0.00792000100000223,
+            "valid": true,
+            "v_mps": 12.841666221618652,
+            "pinion_yaw": -0.015525462227541916,
+            "raw_yaw": -0.03939999999999966,
+            "comma_yaw": -0.019192406134527978
+          }
+        },
+        {
+          "id": "reject-5",
+          "brake": false,
+          "driver": false,
+          "mono_time": 696.871217493,
+          "route_seconds": 658.36086829,
+          "target_segments": [
+            {
+              "segment": 10,
+              "segment_local_seconds": 57.32504971700007
+            }
+          ],
+          "window_route": [
+            648.36086829,
+            668.36086829
+          ],
+          "window_segments": [
+            {
+              "segment": 10,
+              "local_start": 47.32504971700007,
+              "local_end": 59.978024872000105
+            },
+            {
+              "segment": 11,
+              "local_start": 0,
+              "local_end": 7.334776042000044
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9964902389282417,
+            "residual": {
+              "n": 330,
+              "median": 0.0027077277317585496,
+              "p10": -0.0014265698185420453,
+              "p90": 0.022957576464855866,
+              "rmse": 0.017240688172463756
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9999426095288555,
+            "residual": {
+              "n": 330,
+              "median": -0.01745506568474202,
+              "p10": -0.019619559268617467,
+              "p90": -0.007737958526548627,
+              "rmse": 0.016660648565916057
+            }
+          },
+          "speed_mps": {
+            "n": 330,
+            "median": 13.218055248260498,
+            "p10": 6.9866667747497555,
+            "p90": 13.402777671813965,
+            "rmse": 12.055673999539419
+          },
+          "comma_yaw_rad_s": {
+            "n": 330,
+            "median": -0.0015178901347511862,
+            "p10": -0.011966231109210237,
+            "p90": 0.5083816289259093,
+            "rmse": 0.21243046934560766
+          },
+          "nearest_motion_sample": {
+            "mono_time": 696.866900046,
+            "time_delta_to_event": -0.004317447000062202,
+            "valid": true,
+            "v_mps": 13.030555725097656,
+            "pinion_yaw": -0.007857903278376828,
+            "raw_yaw": -0.033199999999999896,
+            "comma_yaw": -0.015232501954372963
+          }
+        },
+        {
+          "id": "reject-6",
+          "brake": false,
+          "driver": false,
+          "mono_time": 718.184795558,
+          "route_seconds": 679.674446355,
+          "target_segments": [
+            {
+              "segment": 11,
+              "segment_local_seconds": 18.648354107000046
+            }
+          ],
+          "window_route": [
+            669.674446355,
+            689.674446355
+          ],
+          "window_segments": [
+            {
+              "segment": 11,
+              "local_start": 8.648354107000046,
+              "local_end": 28.648354107000046
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9157271639026022,
+            "residual": {
+              "n": 400,
+              "median": 0.0010850212795146608,
+              "p10": -0.0028523740283669884,
+              "p90": 0.005279994709290542,
+              "rmse": 0.003890786453344445
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.983961329705521,
+            "residual": {
+              "n": 400,
+              "median": -0.017788272678914738,
+              "p10": -0.019713206809293643,
+              "p90": -0.015998913801384625,
+              "rmse": 0.01785957590831671
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 13.11388874053955,
+            "p10": 8.520277690887452,
+            "p90": 13.416666984558105,
+            "rmse": 12.250765935519032
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.002858874405945023,
+            "p10": -0.01420388698218968,
+            "p90": 0.008305124387249951,
+            "rmse": 0.008876217711701141
+          },
+          "nearest_motion_sample": {
+            "mono_time": 718.161554621,
+            "time_delta_to_event": -0.023240936999968653,
+            "valid": true,
+            "v_mps": 13.130555152893066,
+            "pinion_yaw": -0.012721548598210966,
+            "raw_yaw": -0.030399999999999316,
+            "comma_yaw": -0.014303948861398914
+          }
+        },
+        {
+          "id": "reject-7",
+          "brake": true,
+          "driver": true,
+          "mono_time": 739.145982425,
+          "route_seconds": 700.635633222,
+          "target_segments": [
+            {
+              "segment": 11,
+              "segment_local_seconds": 39.60954097400008
+            }
+          ],
+          "window_route": [
+            690.635633222,
+            710.635633222
+          ],
+          "window_segments": [
+            {
+              "segment": 11,
+              "local_start": 29.609540974000083,
+              "local_end": 49.60954097400008
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9886564135610825,
+            "residual": {
+              "n": 259,
+              "median": 0.0017687856973241157,
+              "p10": -0.002285365841800363,
+              "p90": 0.009110311147742932,
+              "rmse": 0.005611364896287776
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9983986357445642,
+            "residual": {
+              "n": 259,
+              "median": -0.017803513043177656,
+              "p10": -0.0193898535441583,
+              "p90": -0.015629708362074373,
+              "rmse": 0.017720730564099726
+            }
+          },
+          "speed_mps": {
+            "n": 259,
+            "median": 9.480555534362793,
+            "p10": 5.970555686950684,
+            "p90": 11.119444847106934,
+            "rmse": 9.141561703081608
+          },
+          "comma_yaw_rad_s": {
+            "n": 259,
+            "median": -0.002041674511132224,
+            "p10": -0.02563467140766274,
+            "p90": 0.04557719680284608,
+            "rmse": 0.02466652269696626
+          },
+          "nearest_motion_sample": {
+            "mono_time": 739.168104196,
+            "time_delta_to_event": 0.022121770999888213,
+            "valid": true,
+            "v_mps": 11.052778244018555,
+            "pinion_yaw": -0.02730317933787742,
+            "raw_yaw": -0.043400000000000105,
+            "comma_yaw": -0.02563078743455545
+          }
+        },
+        {
+          "id": "reject-8",
+          "brake": false,
+          "driver": false,
+          "mono_time": 1186.221847254,
+          "route_seconds": 1147.711498051,
+          "target_segments": [
+            {
+              "segment": 19,
+              "segment_local_seconds": 6.673585414000172
+            }
+          ],
+          "window_route": [
+            1137.711498051,
+            1157.711498051
+          ],
+          "window_segments": [
+            {
+              "segment": 18,
+              "local_start": 56.68447023500016,
+              "local_end": 60.00043242600009
+            },
+            {
+              "segment": 19,
+              "local_start": 0,
+              "local_end": 16.673585414000172
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9887216933325708,
+            "residual": {
+              "n": 307,
+              "median": 0.0015413541046860701,
+              "p10": -0.005902545772149431,
+              "p90": 0.006590771009535444,
+              "rmse": 0.007694101966496807
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9985420372321813,
+            "residual": {
+              "n": 307,
+              "median": -0.0181276545491125,
+              "p10": -0.02020618779055137,
+              "p90": -0.01603755940373295,
+              "rmse": 0.018279703570644134
+            }
+          },
+          "speed_mps": {
+            "n": 307,
+            "median": 8.936111450195312,
+            "p10": 5.948888874053955,
+            "p90": 10.217777442932128,
+            "rmse": 8.653988887493107
+          },
+          "comma_yaw_rad_s": {
+            "n": 307,
+            "median": -0.003109089581975266,
+            "p10": -0.03710452630921168,
+            "p90": 0.031111307655833968,
+            "rmse": 0.030733017986240493
+          },
+          "nearest_motion_sample": {
+            "mono_time": 1186.221033921,
+            "time_delta_to_event": -0.000813332999996419,
+            "valid": true,
+            "v_mps": 10.16944408416748,
+            "pinion_yaw": -0.0038593696826804617,
+            "raw_yaw": -0.02799999999999958,
+            "comma_yaw": -0.008962551936749394
+          }
+        }
+      ],
+      "comparable_clean_turns": [
+        {
+          "id": "clean-turn-1",
+          "matched_to": "reject-1",
+          "match_score": 0.5501565338598982,
+          "mono_time": 617.0,
+          "route_seconds": 578.489650797,
+          "target_segments": [
+            {
+              "segment": 9,
+              "segment_local_seconds": 37.468554961999985
+            }
+          ],
+          "window_route": [
+            568.489650797,
+            588.489650797
+          ],
+          "window_segments": [
+            {
+              "segment": 9,
+              "local_start": 27.468554961999985,
+              "local_end": 47.468554961999985
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9719535962902113,
+            "residual": {
+              "n": 400,
+              "median": -0.0009261244629612028,
+              "p10": -0.003453254148231463,
+              "p90": 0.0019032910117648464,
+              "rmse": 0.0023180822179064446
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9911370807828891,
+            "residual": {
+              "n": 400,
+              "median": -0.01769066931583304,
+              "p10": -0.019100821924553327,
+              "p90": -0.016371074408367756,
+              "rmse": 0.017717791917385563
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 11.958333492279053,
+            "p10": 7.726388692855835,
+            "p90": 12.400277423858643,
+            "rmse": 11.28478555962708
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.021562027963426746,
+            "p10": -0.031110136834850647,
+            "p90": -0.011923645401926163,
+            "rmse": 0.022716767235400833
+          },
+          "nearest_motion_sample": {
+            "mono_time": 617.015140544,
+            "time_delta_to_event": 0.015140544000018963,
+            "valid": true,
+            "v_mps": 12.33055591583252,
+            "pinion_yaw": -0.03816003927784975,
+            "raw_yaw": -0.05539999999999967,
+            "comma_yaw": -0.03647788171768858
+          }
+        },
+        {
+          "id": "clean-turn-2",
+          "matched_to": "reject-2",
+          "match_score": 0.837394146053922,
+          "mono_time": 218.0,
+          "route_seconds": 179.489650797,
+          "target_segments": [
+            {
+              "segment": 2,
+              "segment_local_seconds": 58.47688329100001
+            }
+          ],
+          "window_route": [
+            169.489650797,
+            189.489650797
+          ],
+          "window_segments": [
+            {
+              "segment": 2,
+              "local_start": 48.47688329100001,
+              "local_end": 59.991196852
+            },
+            {
+              "segment": 3,
+              "local_start": 0,
+              "local_end": 8.475583470999993
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9991744428270223,
+            "residual": {
+              "n": 400,
+              "median": -0.016012082965586663,
+              "p10": -0.029246582507642054,
+              "p90": -0.0032714039480630187,
+              "rmse": 0.01950452301018762
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9998677974070141,
+            "residual": {
+              "n": 400,
+              "median": -0.019365529712305433,
+              "p10": -0.022324972552954743,
+              "p90": -0.01609281430630445,
+              "rmse": 0.019450376714349155
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 12.948610782623291,
+            "p10": 12.179999828338623,
+            "p90": 13.403055477142335,
+            "rmse": 12.904131664331585
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.06717562338830327,
+            "p10": -0.20231586044009345,
+            "p90": 0.004283848958964936,
+            "rmse": 0.13519952235982435
+          },
+          "nearest_motion_sample": {
+            "mono_time": 218.007508249,
+            "time_delta_to_event": 0.007508249000011347,
+            "valid": true,
+            "v_mps": 12.666666984558105,
+            "pinion_yaw": -0.08007551202381875,
+            "raw_yaw": -0.0823999999999998,
+            "comma_yaw": -0.06370191847333194
+          }
+        },
+        {
+          "id": "clean-turn-3",
+          "matched_to": "reject-4",
+          "match_score": 0.7525886763393478,
+          "mono_time": 771.0,
+          "route_seconds": 732.489650797,
+          "target_segments": [
+            {
+              "segment": 12,
+              "segment_local_seconds": 11.462299979000022
+            }
+          ],
+          "window_route": [
+            722.489650797,
+            742.489650797
+          ],
+          "window_segments": [
+            {
+              "segment": 12,
+              "local_start": 1.4622999790000222,
+              "local_end": 21.462299979000022
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9946541663721978,
+            "residual": {
+              "n": 400,
+              "median": 0.003616055670743433,
+              "p10": -0.011867635935867114,
+              "p90": 0.01519565814443169,
+              "rmse": 0.01113885633335374
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9995043840245461,
+            "residual": {
+              "n": 400,
+              "median": -0.01837723384321331,
+              "p10": -0.021065336821495577,
+              "p90": -0.015343829091918115,
+              "rmse": 0.01844253662345055
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 14.087500095367432,
+            "p10": 13.155555725097656,
+            "p90": 17.514167022705077,
+            "rmse": 14.818756548930416
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.03294234436565893,
+            "p10": -0.11172874273433196,
+            "p90": 0.07875821305437397,
+            "rmse": 0.06687969408556749
+          },
+          "nearest_motion_sample": {
+            "mono_time": 771.015915225,
+            "time_delta_to_event": 0.0159152249999579,
+            "valid": true,
+            "v_mps": 14.130555152893066,
+            "pinion_yaw": -0.08981502889685555,
+            "raw_yaw": -0.08919999999999995,
+            "comma_yaw": -0.06867349514297448
+          }
+        },
+        {
+          "id": "clean-turn-4",
+          "matched_to": "reject-5",
+          "match_score": 0.9286935158011813,
+          "mono_time": 244.0,
+          "route_seconds": 205.489650797,
+          "target_segments": [
+            {
+              "segment": 3,
+              "segment_local_seconds": 24.475583470999993
+            }
+          ],
+          "window_route": [
+            195.489650797,
+            215.489650797
+          ],
+          "window_segments": [
+            {
+              "segment": 3,
+              "local_start": 14.475583470999993,
+              "local_end": 34.47558347099999
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9980958555786834,
+            "residual": {
+              "n": 400,
+              "median": -0.011320067495601908,
+              "p10": -0.033052326612522144,
+              "p90": -0.001907191751644893,
+              "rmse": 0.019049294430244494
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9998475870848995,
+            "residual": {
+              "n": 400,
+              "median": -0.01729787815028236,
+              "p10": -0.022063277187325273,
+              "p90": -0.015177051553617718,
+              "rmse": 0.018170003060546308
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 16.62916660308838,
+            "p10": 13.352777481079102,
+            "p90": 24.8894437789917,
+            "rmse": 18.92011750090403
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.030908521995037082,
+            "p10": -0.2190559621155411,
+            "p90": -0.010166025121111841,
+            "rmse": 0.11897357706249971
+          },
+          "nearest_motion_sample": {
+            "mono_time": 244.009063344,
+            "time_delta_to_event": 0.009063343999997642,
+            "valid": true,
+            "v_mps": 16.69444465637207,
+            "pinion_yaw": -0.04361390519800333,
+            "raw_yaw": -0.05239999999999956,
+            "comma_yaw": -0.03482407490900282
+          }
+        }
+      ],
+      "curvature_metrics_moving": {
+        "pinion": {
+          "n": 17210,
+          "median": -8.716014505362712e-05,
+          "rmse": 0.0008814577680353055,
+          "p90_abs": 0.000904862938810505,
+          "abs_exceed_0_002_count": 737
+        },
+        "raw_yaw": {
+          "n": 17210,
+          "median": -0.0008012962049000092,
+          "rmse": 0.0012821617633019097,
+          "p90_abs": 0.00193285810951741,
+          "abs_exceed_0_002_count": 1576
+        }
+      }
+    },
+    "prior": {
+      "route": "00000004--e3907c22d6",
+      "dongle": "0e09a1daaf2c4fd2",
+      "origin_logMonoTime": 100.315927408,
+      "origin_definition": "initial initData.logMonoTime; segment local zero is first raw CAN Event.logMonoTime, excludes repeated metadata",
+      "segments": [
+        {
+          "id": "00000004--e3907c22d6--0",
+          "segment": 0,
+          "path": "prior/logs/00000004--e3907c22d6--0/rlog.zst",
+          "sha256": "7128bdb28145dd5fc72789f5bb4b28daadfb3858f85a96453f8fd05002da54a9",
+          "bytes": 7291029,
+          "mono_start": 100.291778345,
+          "mono_end": 161.296470145,
+          "route_start": -0.024149062999995863,
+          "route_end": 60.98054273700001
+        },
+        {
+          "id": "00000004--e3907c22d6--1",
+          "segment": 1,
+          "path": "prior/logs/00000004--e3907c22d6--1/rlog.zst",
+          "sha256": "7cd234b982b02b07a1cad9a2a300c557d929fdea880817c5f905f37cc4b6c737",
+          "bytes": 9228606,
+          "mono_start": 161.308970822,
+          "mono_end": 221.309558612,
+          "route_start": 60.993043414,
+          "route_end": 120.993631204
+        },
+        {
+          "id": "00000004--e3907c22d6--2",
+          "segment": 2,
+          "path": "prior/logs/00000004--e3907c22d6--2/rlog.zst",
+          "sha256": "ceb303927bdf4311e94e522bf2cd5ed8ddac793226c920e7f8f945d6ca6c4ce2",
+          "bytes": 8882278,
+          "mono_start": 221.318952674,
+          "mono_end": 281.318193433,
+          "route_start": 121.00302526600001,
+          "route_end": 181.00226602499998
+        },
+        {
+          "id": "00000004--e3907c22d6--3",
+          "segment": 3,
+          "path": "prior/logs/00000004--e3907c22d6--3/rlog.zst",
+          "sha256": "5bdfa654c27a1e3f9565ae0973b672409b00164951f4e3f2fe29cbc21b3a020f",
+          "bytes": 9162561,
+          "mono_start": 281.328509943,
+          "mono_end": 341.333853514,
+          "route_start": 181.01258253499998,
+          "route_end": 241.017926106
+        },
+        {
+          "id": "00000004--e3907c22d6--4",
+          "segment": 4,
+          "path": "prior/logs/00000004--e3907c22d6--4/rlog.zst",
+          "sha256": "f3fe4399ca5e4a900201cdcf6d979e4e65b2f4d0058653b2efdf3e97ed248b12",
+          "bytes": 9270054,
+          "mono_start": 341.344151743,
+          "mono_end": 401.311021876,
+          "route_start": 241.028224335,
+          "route_end": 300.995094468
+        },
+        {
+          "id": "00000004--e3907c22d6--5",
+          "segment": 5,
+          "path": "prior/logs/00000004--e3907c22d6--5/rlog.zst",
+          "sha256": "eb4a916b8cf18e760f94ac7252f333c3e091022cccc24ccf75fe412bfb25708b",
+          "bytes": 9502370,
+          "mono_start": 401.321512241,
+          "mono_end": 461.310268468,
+          "route_start": 301.005584833,
+          "route_end": 360.99434106
+        },
+        {
+          "id": "00000004--e3907c22d6--6",
+          "segment": 6,
+          "path": "prior/logs/00000004--e3907c22d6--6/rlog.zst",
+          "sha256": "38accf5b86e52d7efcc19b4dfa5bbf0ca54e8b911ab099c5f97fcb9c74ec62db",
+          "bytes": 9772552,
+          "mono_start": 461.320682114,
+          "mono_end": 521.309799174,
+          "route_start": 361.004754706,
+          "route_end": 420.993871766
+        },
+        {
+          "id": "00000004--e3907c22d6--7",
+          "segment": 7,
+          "path": "prior/logs/00000004--e3907c22d6--7/rlog.zst",
+          "sha256": "48e5da5b0b974398d212a55a81cefed97e6b66accdca2c5fd1287f3760418f50",
+          "bytes": 8648421,
+          "mono_start": 521.320098029,
+          "mono_end": 581.303241964,
+          "route_start": 421.00417062099996,
+          "route_end": 480.987314556
+        },
+        {
+          "id": "00000004--e3907c22d6--8",
+          "segment": 8,
+          "path": "prior/logs/00000004--e3907c22d6--8/rlog.zst",
+          "sha256": "522d29157c6705d515b823ec8d9bec372d2f86c427a028478c2414c178608e94",
+          "bytes": 9739783,
+          "mono_start": 581.314475245,
+          "mono_end": 641.313087827,
+          "route_start": 480.99854783700005,
+          "route_end": 540.997160419
+        },
+        {
+          "id": "00000004--e3907c22d6--9",
+          "segment": 9,
+          "path": "prior/logs/00000004--e3907c22d6--9/rlog.zst",
+          "sha256": "f56a00e9de363493f91565f9cad0f9c11354f33085a0c756001f51818754f8ec",
+          "bytes": 9408871,
+          "mono_start": 641.323006889,
+          "mono_end": 701.312617074,
+          "route_start": 541.007079481,
+          "route_end": 600.996689666
+        },
+        {
+          "id": "00000004--e3907c22d6--10",
+          "segment": 10,
+          "path": "prior/logs/00000004--e3907c22d6--10/rlog.zst",
+          "sha256": "be4eadb4ee75d4278378277d2ac719c6ed4af6bb7028195f2dd46e7c26ca38ec",
+          "bytes": 9416115,
+          "mono_start": 701.322664106,
+          "mono_end": 761.340991427,
+          "route_start": 601.006736698,
+          "route_end": 661.025064019
+        },
+        {
+          "id": "00000004--e3907c22d6--11",
+          "segment": 11,
+          "path": "prior/logs/00000004--e3907c22d6--11/rlog.zst",
+          "sha256": "4e46103ce9a7376e58b5802ca0aeb5d832cc8033af35b308aaac830d3d4aab33",
+          "bytes": 9283141,
+          "mono_start": 761.353193249,
+          "mono_end": 821.341058904,
+          "route_start": 661.037265841,
+          "route_end": 721.025131496
+        },
+        {
+          "id": "00000004--e3907c22d6--12",
+          "segment": 12,
+          "path": "prior/logs/00000004--e3907c22d6--12/rlog.zst",
+          "sha256": "261db2e47466f01fbb03ffcbf3c3492cfbd5516b095b53976ded73bd1f683bf9",
+          "bytes": 9157856,
+          "mono_start": 821.351254529,
+          "mono_end": 881.32258987,
+          "route_start": 721.035327121,
+          "route_end": 781.006662462
+        },
+        {
+          "id": "00000004--e3907c22d6--13",
+          "segment": 13,
+          "path": "prior/logs/00000004--e3907c22d6--13/rlog.zst",
+          "sha256": "b4e81caad2f6c47a4b072073a432aabea8dd556cbc5e675843595b8349d2afca",
+          "bytes": 9934906,
+          "mono_start": 881.332629714,
+          "mono_end": 941.333672347,
+          "route_start": 781.016702306,
+          "route_end": 841.017744939
+        },
+        {
+          "id": "00000004--e3907c22d6--14",
+          "segment": 14,
+          "path": "prior/logs/00000004--e3907c22d6--14/rlog.zst",
+          "sha256": "6e1e5043a2d73bfc4388ae942c813566aadf586a8e68a020a0c62fa85e2629e4",
+          "bytes": 5995705,
+          "mono_start": 941.343661358,
+          "mono_end": 979.26095801,
+          "route_start": 841.02773395,
+          "route_end": 878.945030602
+        }
+      ],
+      "carParams": {
+        "mass": 2878.0,
+        "rotationalInertia": 6535.75146484375,
+        "wheelbase": 3.1115000247955322,
+        "centerToFront": 1.3690600395202637,
+        "steerRatioRear": 0.0,
+        "tireStiffnessFront": 353037.28125,
+        "tireStiffnessRear": 438491.46875,
+        "steerRatio": 19.600000381469727
+      },
+      "bus_counts": {
+        "(145, 0)": 87921,
+        "(145, 2)": 1706,
+        "(126, 0)": 87887,
+        "(126, 2)": 1703,
+        "(126, 130)": 86162,
+        "(145, 130)": 86191
+      },
+      "pinion_quality": {
+        "3": 87887
+      },
+      "yaw_quality": {
+        "3": 87921
+      },
+      "timing": {
+        "device_publish_minus_motion": {
+          "n": 17076,
+          "median": 0.02416138050000427,
+          "p10": 0.019916328499959945,
+          "p90": 0.027969297000026927,
+          "rmse": 4.199977634490237
+        },
+        "pinion_age_at_motion": {
+          "n": 15894,
+          "median": 0.005087968499992712,
+          "p10": 0.0010109435000117632,
+          "p90": 0.00960090109997225,
+          "rmse": 0.006395906500070566
+        },
+        "yaw_age_at_motion": {
+          "n": 15894,
+          "median": 0.005129140999997617,
+          "p10": 0.001016291899964017,
+          "p90": 0.009631469099974766,
+          "rmse": 0.006497843955679738
+        }
+      },
+      "metrics": {
+        "moving_gt5mps": {
+          "pinion_vs_comma": {
+            "correlation": 0.9957130235508296,
+            "residual": {
+              "n": 14132,
+              "median": -0.0012329838509438223,
+              "p10": -0.00991292267157455,
+              "p90": 0.005546989851595306,
+              "rmse": 0.009711317048181718
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9995780122000341,
+            "residual": {
+              "n": 14132,
+              "median": -0.01797753421793554,
+              "p10": -0.020659497719176266,
+              "p90": -0.015345504566772566,
+              "rmse": 0.018199073239102893
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.9957187726114932,
+            "residual": {
+              "n": 14132,
+              "median": 0.016672335288507124,
+              "p10": 0.00828219128962037,
+              "p90": 0.023415417009898402,
+              "rmse": 0.018420299438536562
+            }
+          }
+        },
+        "active_moving": {
+          "pinion_vs_comma": {
+            "correlation": 0.9945445631679536,
+            "residual": {
+              "n": 13270,
+              "median": -0.0010229791894666542,
+              "p10": -0.008883387845888085,
+              "p90": 0.005642638270855062,
+              "rmse": 0.008440250243906346
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9993511549161793,
+            "residual": {
+              "n": 13270,
+              "median": -0.01795820039909224,
+              "p10": -0.020480889942298425,
+              "p90": -0.015382176439549191,
+              "rmse": 0.018097112720571854
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.9944191567358205,
+            "residual": {
+              "n": 13270,
+              "median": 0.016857659344658042,
+              "p10": 0.009190074399435661,
+              "p90": 0.023537643419068503,
+              "rmse": 0.018548417059654383
+            }
+          }
+        },
+        "straight_moving": {
+          "pinion_vs_comma": {
+            "correlation": 0.7079870433342107,
+            "residual": {
+              "n": 5969,
+              "median": 0.0002764256819824817,
+              "p10": -0.00516061733305912,
+              "p90": 0.004413773889940891,
+              "rmse": 0.00420737475640003
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9284720070187699,
+            "residual": {
+              "n": 5969,
+              "median": -0.017885022780512988,
+              "p10": -0.020047055556732418,
+              "p90": -0.015657967456725732,
+              "rmse": 0.01796135075104862
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.7025335056850132,
+            "residual": {
+              "n": 5969,
+              "median": 0.018148264211524857,
+              "p10": 0.012483487212029814,
+              "p90": 0.022429588378061385,
+              "rmse": 0.018282026711994893
+            }
+          }
+        },
+        "turning_moving": {
+          "pinion_vs_comma": {
+            "correlation": 0.9970438326196983,
+            "residual": {
+              "n": 3804,
+              "median": -0.0035679890637040357,
+              "p10": -0.02158026830634348,
+              "p90": 0.02090501261489718,
+              "rmse": 0.01669486014459758
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9998518570852604,
+            "residual": {
+              "n": 3804,
+              "median": -0.018202299774259627,
+              "p10": -0.022106557294037835,
+              "p90": -0.014700615406567332,
+              "rmse": 0.018632822001395825
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": 0.997073243558885,
+            "residual": {
+              "n": 3804,
+              "median": 0.014587323815123164,
+              "p10": -0.0016795476347316568,
+              "p90": 0.035914467723435047,
+              "rmse": 0.021122765501387916
+            }
+          }
+        },
+        "stopped": {
+          "pinion_vs_comma": {
+            "correlation": -0.27819087209350435,
+            "residual": {
+              "n": 909,
+              "median": 0.00014862786565176373,
+              "p10": -0.00018005063450233686,
+              "p90": 0.0005497665629079166,
+              "rmse": 0.0009038240737546807
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.7327863135471455,
+            "residual": {
+              "n": 909,
+              "median": -0.018057109919245674,
+              "p10": -0.018913617460363477,
+              "p90": -0.017133380827604107,
+              "rmse": 0.018063199886612938
+            }
+          },
+          "pinion_vs_raw_ford": {
+            "correlation": -0.24438445845062887,
+            "residual": {
+              "n": 909,
+              "median": 0.018199999999999328,
+              "p10": 0.017199999999999882,
+              "p90": 0.019400000000000084,
+              "rmse": 0.018289730033168417
+            }
+          }
+        }
+      },
+      "reject_windows": [],
+      "comparable_clean_turns": [
+        {
+          "id": "clean-turn-1",
+          "matched_to": null,
+          "match_score": 0.3398414888141873,
+          "mono_time": 609.0,
+          "route_seconds": 508.684072592,
+          "target_segments": [
+            {
+              "segment": 8,
+              "segment_local_seconds": 27.68552475499996
+            }
+          ],
+          "window_route": [
+            498.684072592,
+            518.684072592
+          ],
+          "window_segments": [
+            {
+              "segment": 8,
+              "local_start": 17.68552475499996,
+              "local_end": 37.68552475499996
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9938706622463888,
+            "residual": {
+              "n": 400,
+              "median": 0.0010001941979023736,
+              "p10": -0.01889559956264886,
+              "p90": 0.01400967497712736,
+              "rmse": 0.012214682692365943
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9995065625195078,
+            "residual": {
+              "n": 400,
+              "median": -0.018638841892170497,
+              "p10": -0.021760436890835348,
+              "p90": -0.015802124645232087,
+              "rmse": 0.018955040533599535
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 14.726388931274414,
+            "p10": 11.807777881622314,
+            "p90": 18.02583293914795,
+            "rmse": 15.183656490403239
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": -0.03296483704125845,
+            "p10": -0.11398107323921428,
+            "p90": 0.0800940693661238,
+            "rmse": 0.0694362383829077
+          },
+          "nearest_motion_sample": {
+            "mono_time": 609.008073256,
+            "time_delta_to_event": 0.00807325599998876,
+            "valid": true,
+            "v_mps": 14.683333396911621,
+            "pinion_yaw": -0.15058642718856108,
+            "raw_yaw": -0.1387999999999998,
+            "comma_yaw": -0.12194581053497074
+          }
+        },
+        {
+          "id": "clean-turn-2",
+          "matched_to": null,
+          "match_score": 0.022513096761626904,
+          "mono_time": 350.0,
+          "route_seconds": 249.684072592,
+          "target_segments": [
+            {
+              "segment": 4,
+              "segment_local_seconds": 8.655848257000002
+            }
+          ],
+          "window_route": [
+            239.684072592,
+            259.684072592
+          ],
+          "window_segments": [
+            {
+              "segment": 3,
+              "local_start": 58.67149005700003,
+              "local_end": 60.005343571000026
+            },
+            {
+              "segment": 4,
+              "local_start": 0,
+              "local_end": 18.655848257000002
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9738872435030247,
+            "residual": {
+              "n": 399,
+              "median": -0.003915663903449752,
+              "p10": -0.01072602310887183,
+              "p90": 0.0015387104280861826,
+              "rmse": 0.006890747087474351
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9904456145386992,
+            "residual": {
+              "n": 399,
+              "median": -0.018177808655376992,
+              "p10": -0.021534161192505924,
+              "p90": -0.01569945308792533,
+              "rmse": 0.01858509529483251
+            }
+          },
+          "speed_mps": {
+            "n": 399,
+            "median": 28.975000381469727,
+            "p10": 28.780555725097656,
+            "p90": 29.113889694213867,
+            "rmse": 28.95289264266703
+          },
+          "comma_yaw_rad_s": {
+            "n": 399,
+            "median": -0.029189289933384013,
+            "p10": -0.04100886487765604,
+            "p90": 0.0011961189217580316,
+            "rmse": 0.028170728847972486
+          },
+          "nearest_motion_sample": {
+            "mono_time": 350.006236688,
+            "time_delta_to_event": 0.0062366880000013225,
+            "valid": true,
+            "v_mps": 29.008333206176758,
+            "pinion_yaw": -0.0388360887727496,
+            "raw_yaw": -0.045999999999999375,
+            "comma_yaw": -0.03025876848347949
+          }
+        },
+        {
+          "id": "clean-turn-3",
+          "matched_to": null,
+          "match_score": 0.0,
+          "mono_time": 400.0,
+          "route_seconds": 299.684072592,
+          "target_segments": [
+            {
+              "segment": 4,
+              "segment_local_seconds": 58.655848257
+            }
+          ],
+          "window_route": [
+            289.684072592,
+            309.684072592
+          ],
+          "window_segments": [
+            {
+              "segment": 4,
+              "local_start": 48.655848257,
+              "local_end": 59.966870132999986
+            },
+            {
+              "segment": 5,
+              "local_start": 0,
+              "local_end": 8.678487759000006
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9769552541461916,
+            "residual": {
+              "n": 401,
+              "median": 0.024062627919602578,
+              "p10": 0.015080334145710833,
+              "p90": 0.03334207978264708,
+              "rmse": 0.025126210235197267
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.995472137417453,
+            "residual": {
+              "n": 401,
+              "median": -0.01621847684474098,
+              "p10": -0.018749570522478096,
+              "p90": -0.013961993399667298,
+              "rmse": 0.016431332096343614
+            }
+          },
+          "speed_mps": {
+            "n": 401,
+            "median": 23.127777099609375,
+            "p10": 22.858333587646484,
+            "p90": 24.47222137451172,
+            "rmse": 23.399473748794573
+          },
+          "comma_yaw_rad_s": {
+            "n": 401,
+            "median": 0.10735873107727009,
+            "p10": 0.08677650740594389,
+            "p90": 0.138842931871003,
+            "rmse": 0.11150178333746356
+          },
+          "nearest_motion_sample": {
+            "mono_time": 400.000204846,
+            "time_delta_to_event": 0.00020484599997416808,
+            "valid": true,
+            "v_mps": 22.950000762939453,
+            "pinion_yaw": 0.1381206787335188,
+            "raw_yaw": 0.08660000000000068,
+            "comma_yaw": 0.1045664637812209
+          }
+        },
+        {
+          "id": "clean-turn-4",
+          "matched_to": null,
+          "match_score": 4.646147780659209,
+          "mono_time": 637.0,
+          "route_seconds": 536.684072592,
+          "target_segments": [
+            {
+              "segment": 8,
+              "segment_local_seconds": 55.68552475499996
+            }
+          ],
+          "window_route": [
+            526.684072592,
+            546.684072592
+          ],
+          "window_segments": [
+            {
+              "segment": 8,
+              "local_start": 45.68552475499996,
+              "local_end": 59.998612581999964
+            },
+            {
+              "segment": 9,
+              "local_start": 0,
+              "local_end": 5.676993111000002
+            }
+          ],
+          "pinion_vs_comma": {
+            "correlation": 0.9912046160277492,
+            "residual": {
+              "n": 400,
+              "median": -0.0005235378761949475,
+              "p10": -0.005542765211295884,
+              "p90": 0.0032576642494176796,
+              "rmse": 0.0036919210337450037
+            }
+          },
+          "raw_ford_vs_comma": {
+            "correlation": 0.9977282303056739,
+            "residual": {
+              "n": 400,
+              "median": -0.018019201700606897,
+              "p10": -0.020168012085196172,
+              "p90": -0.015719076998679127,
+              "rmse": 0.018075191580653807
+            }
+          },
+          "speed_mps": {
+            "n": 400,
+            "median": 21.545833587646484,
+            "p10": 20.866389083862305,
+            "p90": 22.542777252197265,
+            "rmse": 21.653270603990528
+          },
+          "comma_yaw_rad_s": {
+            "n": 400,
+            "median": 0.023954924127556163,
+            "p10": -0.037518463593412994,
+            "p90": 0.036836949811440124,
+            "rmse": 0.02919567967080041
+          },
+          "nearest_motion_sample": {
+            "mono_time": 637.008321527,
+            "time_delta_to_event": 0.008321527000020978,
+            "valid": true,
+            "v_mps": 21.55555534362793,
+            "pinion_yaw": 0.02959980518301647,
+            "raw_yaw": 0.016000000000000014,
+            "comma_yaw": 0.033818431388909005
+          }
+        }
+      ],
+      "curvature_metrics_moving": {
+        "pinion": {
+          "n": 14132,
+          "median": -5.328057049687502e-05,
+          "rmse": 0.0008487737923416796,
+          "p90_abs": 0.0008435523763905559,
+          "abs_exceed_0_002_count": 399
+        },
+        "raw_yaw": {
+          "n": 14132,
+          "median": -0.0007093506079560424,
+          "rmse": 0.0011084715131119075,
+          "p90_abs": 0.0015802907109525339,
+          "abs_exceed_0_002_count": 710
+        }
+      }
+    }
+  },
+  "analysis_script_sha256": {
+    "analyze.py": "8e1bcb0525915403bbc87f9c3a1ab36af99f541a696bf0740b004e6f541775b4",
+    "report.py": "57ba78cd899ac24421350d5d8a61a0ced01c9136ba41f1ed6b4034698201b3d2",
+    "extract.py": "e9c4cbd6398272eac033996cb8f99af3f2618fe3288ec70241b8a43674134d6c"
+  }
+}

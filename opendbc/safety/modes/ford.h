@@ -9,6 +9,7 @@
 #define FORD_BrakeSysFeatures      0x415U   // RX from ABS, for vehicle speed
 #define FORD_EngVehicleSpThrottle2 0x202U   // RX from PCM, for second vehicle speed
 #define FORD_Yaw_Data_FD1          0x91U    // RX from RCM, for yaw rate
+#define FORD_SteeringPinion_Data   0x7EU    // RX from PSCM, fixed-model curvature on Expedition CAN-FD
 #define FORD_Steering_Data_FD1     0x083U   // TX by OP, various driver switches and LKAS/CC buttons
 #define FORD_ACCDATA               0x186U   // TX by OP, ACC controls
 #define FORD_ACCDATA_3             0x18AU   // TX by OP, ACC/TJA user interface
@@ -29,6 +30,8 @@ static uint8_t ford_get_counter(const CANPacket_t *msg) {
   } else if (msg->addr == FORD_Yaw_Data_FD1) {
     // Signal: VehRollYaw_No_Cnt
     cnt = msg->data[5];
+  } else if (msg->addr == FORD_SteeringPinion_Data) {
+    cnt = (msg->data[5] >> 4) & 0xFU;  // StePinAn_No_Cnt
   } else {
   }
   return cnt;
@@ -74,6 +77,8 @@ static bool ford_get_quality_flag_valid(const CANPacket_t *msg) {
     valid = ((msg->data[4] >> 5) & 0x3U) == 0x3U;  // VehVActlEng_D_Qf
   } else if (msg->addr == FORD_Yaw_Data_FD1) {
     valid = ((msg->data[6] >> 4) & 0x3U) == 0x3U;  // VehYawWActl_D_Qf
+  } else if (msg->addr == FORD_SteeringPinion_Data) {
+    valid = ((msg->data[5] >> 2) & 0x3U) == 0x3U;  // StePinCompAnEst_D_Qf
   } else {
   }
   return valid;
@@ -131,6 +136,34 @@ static const CurvatureSteeringLimits FORD_STEERING_LIMITS = {
   .curvature_error_min_speed = 10.0,  // m/s
   .max_steer_power = 0,               // disabled, Ford has no steed power signal
 };
+
+// This safety flag is assigned only to Expedition CAN-FD by the interface.
+static bool ford_pinion_curvature = false;
+static bool ford_pinion_seen = false;
+static uint32_t ford_pinion_ts = 0U;
+static RxCheck *ford_pinion_rx_check = NULL;
+
+static float ford_pinion_curvature_factor(float speed) {
+  // Mirrors VehicleModel with Expedition CarSpecs + 136 kg cargo and the default
+  // scale_tire_stiffness result. No learned steering ratio, angle offset or roll.
+  const float wheelbase = 3.1115f;
+  const float mass = 2878.0f;
+  const float center_to_front = wheelbase * 0.44f;
+  const float center_to_rear = wheelbase - center_to_front;
+  const float stiffness_front = 353037.28125f;
+  const float stiffness_rear = 438491.46875f;
+  const float slip = mass * ((stiffness_front * center_to_front) - (stiffness_rear * center_to_rear)) /
+                     (wheelbase * wheelbase * stiffness_front * stiffness_rear);
+  return 1.0f / ((1.0f - (slip * speed * speed)) * wheelbase);
+}
+
+static bool ford_pinion_valid(void) {
+  // Match native RX lag tolerance, but also gate TX before the first sample and
+  // between safety ticks. Invalid pinion never falls back to yaw measurement.
+  return ford_pinion_seen && ((microsecond_timer_get() - ford_pinion_ts) <= 1000000U) &&
+         ford_pinion_rx_check->status.valid_quality_flag &&
+         (ford_pinion_rx_check->status.wrong_counters < MAX_WRONG_COUNTERS);
+}
 
 // Path angle rate-of-change check for angle mode.
 // Symmetric ROC (same up/down limits) applied when steer_control_enabled.
@@ -197,7 +230,7 @@ static void ford_rx_hook(const CANPacket_t *msg) {
     }
 
     // Update vehicle yaw rate
-    if (msg->addr == FORD_Yaw_Data_FD1) {
+    if ((msg->addr == FORD_Yaw_Data_FD1) && !ford_pinion_curvature) {
       // FIXME: safety can receive yaw before new vehicle speed, it should recompute meas on either received
       // Signal: VehYaw_W_Actl
       // TODO: we should use the speed which results in the closest angle measurement to the desired angle
@@ -205,6 +238,17 @@ static void ford_rx_hook(const CANPacket_t *msg) {
       float current_curvature = ford_yaw_rate / SAFETY_MAX(vehicle_speed.values[0] / VEHICLE_SPEED_FACTOR, 0.1);
       // convert current curvature into units on CAN for comparison with desired curvature
       update_sample(&curvature_state.meas, ROUND(current_curvature * FORD_STEERING_LIMITS.curvature_to_can));
+    }
+
+    if ((msg->addr == FORD_SteeringPinion_Data) && ford_pinion_curvature) {
+      // StePinComp_An_Est: 22|15@0+, scale 0.1 deg, offset -1600 deg.
+      const int raw_pinion = ((msg->data[2] & 0x7FU) << 8) | msg->data[3];
+      const float angle_rad = (((float)raw_pinion * 0.1f) - 1600.0f) * 0.017453292519943295f;
+      const float speed = (float)vehicle_speed.values[0] / VEHICLE_SPEED_FACTOR;
+      const float curvature = ford_pinion_curvature_factor(speed) * angle_rad / 19.6f;
+      update_sample(&curvature_state.meas, ROUND(curvature * FORD_STEERING_LIMITS.curvature_to_can));
+      ford_pinion_seen = true;
+      ford_pinion_ts = microsecond_timer_get();
     }
 
     // Update gas pedal
@@ -341,6 +385,8 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
 
     bool violation = false;
 
+    violation |= steer_control_enabled && ford_pinion_curvature && !ford_pinion_valid();
+
     // Curvature rate and path offset must always be at inactive sentinel
     violation |= (raw_curvature_rate != FORD_CANFD_INACTIVE_CURVATURE_RATE);
     violation |= (raw_path_offset != FORD_INACTIVE_PATH_OFFSET);
@@ -394,6 +440,9 @@ static safety_config ford_init(uint16_t param) {
     {.msg = {{FORD_EngBrakeData, 0, 8, 10U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},
     {.msg = {{FORD_EngVehicleSpThrottle, 0, 8, 100U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},
     {.msg = {{FORD_DesiredTorqBrk, 0, 8, 50U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},
+    // Checksum algorithm is unknown; donor also ignores it. Counter, quality,
+    // length and 100 Hz liveness are enforced only when consuming pinion.
+    {.msg = {{FORD_SteeringPinion_Data, 0, 8, 100U, .max_counter = 15U, .ignore_checksum = true}, { 0 }, { 0 }}},
   };
 
   #define FORD_COMMON_TX_MSGS \
@@ -425,6 +474,16 @@ static safety_config ford_init(uint16_t param) {
   const uint16_t FORD_PARAM_CANFD = 2;
   const bool ford_canfd = GET_FLAG(param, FORD_PARAM_CANFD);
 
+  const uint16_t FORD_PARAM_PINION_CURVATURE = 8;
+  ford_pinion_curvature = ford_canfd && GET_FLAG(param, FORD_PARAM_PINION_CURVATURE);
+  ford_pinion_seen = false;
+  ford_pinion_ts = 0U;
+  ford_pinion_rx_check = &ford_rx_checks[sizeof(ford_rx_checks) / sizeof(ford_rx_checks[0]) - 1U];
+  if (ford_pinion_curvature) {
+    // Do not mix samples from a previously selected yaw-based mode.
+    curvature_state.meas = (struct sample_t){0};
+  }
+
   safety_config ret;
   if (ford_canfd) {
     ret = BUILD_SAFETY_CFG(ford_rx_checks, FORD_CANFD_STOCK_TX_MSGS);
@@ -436,6 +495,9 @@ static safety_config ford_init(uint16_t param) {
 #endif
   } else {
     ret = BUILD_SAFETY_CFG(ford_rx_checks, FORD_LONG_TX_MSGS);
+  }
+  if (!ford_pinion_curvature) {
+    ret.rx_checks_len -= 1;
   }
   return ret;
 }

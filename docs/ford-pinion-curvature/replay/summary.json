@@ -1,0 +1,1717 @@
+{
+  "reconstruction": {
+    "baseline": {
+      "3ca_batches": 39027,
+      "3ca_byte_matches": 39027,
+      "3ca_schedule_mismatch": 0,
+      "3d6_batches": 23413,
+      "3d6_byte_matches": 23413,
+      "3d6_schedule_mismatch": 0
+    },
+    "candidate": {
+      "3ca_batches": 39027,
+      "3ca_byte_matches": 28622,
+      "3ca_schedule_mismatch": 0,
+      "3d6_batches": 23413,
+      "3d6_byte_matches": 22599,
+      "3d6_schedule_mismatch": 0
+    }
+  },
+  "cases": [
+    {
+      "offset_ms": -10,
+      "window": 0,
+      "interval": [
+        197.31428164,
+        204.616612213
+      ],
+      "variants": {
+        "baseline": {
+          "tx": 795,
+          "rx": 29264,
+          "steering": 145,
+          "steering_rejected": 115,
+          "active_steering": 115,
+          "active_steering_rejected": 115,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 115
+        },
+        "candidate": {
+          "tx": 795,
+          "rx": 29264,
+          "steering": 145,
+          "steering_rejected": 115,
+          "active_steering": 115,
+          "active_steering_rejected": 115,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 115
+        }
+      }
+    },
+    {
+      "offset_ms": -10,
+      "window": 1,
+      "interval": [
+        498.185394859,
+        505.185394859
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 2,
+          "active_steering": 100,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 2,
+          "active_steering": 100,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": -10,
+      "window": 2,
+      "interval": [
+        691.169303275,
+        698.871217493
+      ],
+      "variants": {
+        "baseline": {
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 1,
+          "active_steering": 87,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0,
+          "rx": 30907
+        },
+        "candidate": {
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 0,
+          "active_steering": 87,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0,
+          "rx": 30907
+        }
+      }
+    },
+    {
+      "offset_ms": -10,
+      "window": 3,
+      "interval": [
+        713.184795558,
+        720.184795558
+      ],
+      "variants": {
+        "baseline": {
+          "tx": 761,
+          "rx": 27984,
+          "steering": 139,
+          "steering_rejected": 2,
+          "active_steering": 139,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "tx": 761,
+          "rx": 27984,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": -10,
+      "window": 4,
+      "interval": [
+        734.145982425,
+        741.145982425
+      ],
+      "variants": {
+        "baseline": {
+          "tx": 768,
+          "rx": 27955,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "tx": 768,
+          "rx": 27955,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": -10,
+      "window": 5,
+      "interval": [
+        1181.221847254,
+        1188.221847254
+      ],
+      "variants": {
+        "baseline": {
+          "tx": 761,
+          "rx": 27987,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "tx": 761,
+          "rx": 27987,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 0,
+      "window": 0,
+      "interval": [
+        197.31428164,
+        204.616612213
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 0,
+          "active_steering": 115,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 0,
+          "active_steering": 115,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 0,
+      "window": 1,
+      "interval": [
+        498.185394859,
+        505.185394859
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 0,
+      "window": 2,
+      "interval": [
+        691.169303275,
+        698.871217493
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 1,
+          "active_steering": 87,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 0,
+          "active_steering": 87,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 0,
+      "window": 3,
+      "interval": [
+        713.184795558,
+        720.184795558
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 0,
+          "active_steering": 139,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 0,
+      "window": 4,
+      "interval": [
+        734.145982425,
+        741.145982425
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 0,
+      "window": 5,
+      "interval": [
+        1181.221847254,
+        1188.221847254
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 5,
+      "window": 0,
+      "interval": [
+        197.31428164,
+        204.616612213
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 0,
+          "active_steering": 115,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 0,
+          "active_steering": 115,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 5,
+      "window": 1,
+      "interval": [
+        498.185394859,
+        505.185394859
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 5,
+      "window": 2,
+      "interval": [
+        691.169303275,
+        698.871217493
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 1,
+          "active_steering": 87,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 0,
+          "active_steering": 87,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 5,
+      "window": 3,
+      "interval": [
+        713.184795558,
+        720.184795558
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 0,
+          "active_steering": 139,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 5,
+      "window": 4,
+      "interval": [
+        734.145982425,
+        741.145982425
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 5,
+      "window": 5,
+      "interval": [
+        1181.221847254,
+        1188.221847254
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 10,
+      "window": 0,
+      "interval": [
+        197.31428164,
+        204.616612213
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 2,
+          "active_steering": 115,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 0,
+          "active_steering": 115,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 10,
+      "window": 1,
+      "interval": [
+        498.185394859,
+        505.185394859
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 10,
+      "window": 2,
+      "interval": [
+        691.169303275,
+        698.871217493
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 2,
+          "active_steering": 87,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 0,
+          "active_steering": 87,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 10,
+      "window": 3,
+      "interval": [
+        713.184795558,
+        720.184795558
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 0,
+          "active_steering": 139,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 10,
+      "window": 4,
+      "interval": [
+        734.145982425,
+        741.145982425
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 10,
+      "window": 5,
+      "interval": [
+        1181.221847254,
+        1188.221847254
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 2,
+          "active_steering": 139,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 20,
+      "window": 0,
+      "interval": [
+        197.31428164,
+        204.616612213
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 3,
+          "active_steering": 115,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 3,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 29264,
+          "tx": 795,
+          "steering": 145,
+          "steering_rejected": 0,
+          "active_steering": 115,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 20,
+      "window": 1,
+      "interval": [
+        498.185394859,
+        505.185394859
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 28053,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 3,
+          "active_steering": 100,
+          "active_steering_rejected": 3,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 20,
+      "window": 2,
+      "interval": [
+        691.169303275,
+        698.871217493
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 1,
+          "active_steering": 87,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 30907,
+          "tx": 837,
+          "steering": 153,
+          "steering_rejected": 0,
+          "active_steering": 87,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 20,
+      "window": 3,
+      "interval": [
+        713.184795558,
+        720.184795558
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 2,
+          "active_steering": 139,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27984,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 0,
+          "active_steering": 139,
+          "active_steering_rejected": 0,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    },
+    {
+      "offset_ms": 20,
+      "window": 4,
+      "interval": [
+        734.145982425,
+        741.145982425
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        },
+        "candidate": {
+          "rx": 27955,
+          "tx": 768,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 100,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 0,
+          "rejected_without_controls_allowed": 1
+        }
+      }
+    },
+    {
+      "offset_ms": 20,
+      "window": 5,
+      "interval": [
+        1181.221847254,
+        1188.221847254
+      ],
+      "variants": {
+        "baseline": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 2,
+          "active_steering": 139,
+          "active_steering_rejected": 2,
+          "rejected_with_controls_allowed": 2,
+          "rejected_without_controls_allowed": 0
+        },
+        "candidate": {
+          "rx": 27987,
+          "tx": 761,
+          "steering": 139,
+          "steering_rejected": 1,
+          "active_steering": 139,
+          "active_steering_rejected": 1,
+          "rejected_with_controls_allowed": 1,
+          "rejected_without_controls_allowed": 0
+        }
+      }
+    }
+  ],
+  "source": {
+    "baseline": {
+      "commit": "immutable extracted snapshot; no git metadata",
+      "ford_safety_sha256": "556cc011abe6de6d10c79ee9e889cfd08d85c2540f7ee46631241ec52fa85010"
+    },
+    "candidate": {
+      "commit": "131f73e98bd20dede2744906f1be97421ebdeb16",
+      "ford_safety_sha256": "b4e852b79e172cbad605c6cfc1ce6245e30074fb7b176007faa0e8aec3aa2835"
+    }
+  },
+  "limitations": [
+    "Controller reconstruction uses nearest preceding full logged CS and CC; zero-filled stock UI/button messages are excluded from comparison.",
+    "All baseline LMC2 and LKA payloads and schedule exactly match their recorded counterparts, validating the lateral reconstruction on this route.",
+    "Native safety initializes separately at each seven-second window; it has no exact pre-window MCU state. No controls_allowed override is used.",
+    "MCU periodic ticks, interrupts, SPI transport and vehicle feedback are unmodeled. RX integrity hooks and per-TX pinion freshness do run.",
+    "The five offsets perturb TX against fixed RX log timestamps; none is asserted to equal MCU ordering.",
+    "Regenerated candidate commands use recorded baseline feedback. This counterfactual replay does not predict closed-loop vehicle outcomes."
+  ],
+  "targets": [
+    {
+      "seconds": 163.804,
+      "send_t": 202.307000911,
+      "brake": false,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 164.106,
+      "send_t": 202.609113359,
+      "brake": false,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 464.675,
+      "send_t": 503.178974755,
+      "brake": true,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 657.659,
+      "send_t": 696.165230358,
+      "brake": false,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 658.361,
+      "send_t": 696.864673952,
+      "brake": false,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 679.674,
+      "send_t": 718.1785841,
+      "brake": false,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 700.636,
+      "send_t": 739.142403935,
+      "brake": true,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          },
+          "candidate": {
+            "accepted": false,
+            "controls_allowed": false,
+            "brake_pressed_prev": true
+          }
+        }
+      ]
+    },
+    {
+      "seconds": 1147.711,
+      "send_t": 1186.215590119,
+      "brake": false,
+      "recorded_ack": {
+        "status": "rejected",
+        "matches": 1
+      },
+      "offsets": [
+        {
+          "offset_ms": -10,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 0,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 5,
+          "baseline": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 10,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        },
+        {
+          "offset_ms": 20,
+          "baseline": {
+            "accepted": false,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          },
+          "candidate": {
+            "accepted": true,
+            "controls_allowed": true,
+            "brake_pressed_prev": false
+          }
+        }
+      ]
+    }
+  ],
+  "new_rejections": [
+    {
+      "offset_ms": -10,
+      "window": 4,
+      "t": 736.627995603,
+      "seconds": 698.1176464,
+      "warmup_seconds": 2.4820131779999883,
+      "recorded_ack": {
+        "status": "accepted",
+        "matches": 1
+      },
+      "baseline": {
+        "accepted": true,
+        "active": true,
+        "before": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          -99,
+          -4658,
+          1,
+          -153,
+          -129,
+          10633,
+          0
+        ],
+        "data": "14947d0da200801c"
+      },
+      "candidate": {
+        "accepted": false,
+        "active": true,
+        "before": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          -85,
+          -3403,
+          1,
+          -65,
+          -50,
+          10633,
+          0
+        ],
+        "data": "14727d0e2a00801c"
+      }
+    },
+    {
+      "offset_ms": -10,
+      "window": 4,
+      "t": 736.932821905,
+      "seconds": 698.4224727019999,
+      "warmup_seconds": 2.7868394799999123,
+      "recorded_ack": {
+        "status": "accepted",
+        "matches": 1
+      },
+      "baseline": {
+        "accepted": true,
+        "active": true,
+        "before": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          -112,
+          -4052,
+          1,
+          -170,
+          -155,
+          10889,
+          0
+        ],
+        "data": "14917d0dd6008008"
+      },
+      "candidate": {
+        "accepted": false,
+        "active": true,
+        "before": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          -112,
+          -4018,
+          1,
+          -98,
+          -91,
+          10889,
+          0
+        ],
+        "data": "14907d0dda008008"
+      }
+    }
+  ],
+  "offsets": [
+    {
+      "offset_ms": -10,
+      "all_steering": 854,
+      "warmed_acknowledged_active_neighbors": 502,
+      "total_rejected": {
+        "baseline": 122,
+        "candidate": 122
+      },
+      "warmed_acknowledged_active_rejected": {
+        "baseline": 105,
+        "candidate": 105
+      }
+    },
+    {
+      "offset_ms": 0,
+      "all_steering": 854,
+      "warmed_acknowledged_active_neighbors": 502,
+      "total_rejected": {
+        "baseline": 7,
+        "candidate": 5
+      },
+      "warmed_acknowledged_active_rejected": {
+        "baseline": 0,
+        "candidate": 0
+      }
+    },
+    {
+      "offset_ms": 5,
+      "all_steering": 854,
+      "warmed_acknowledged_active_neighbors": 502,
+      "total_rejected": {
+        "baseline": 7,
+        "candidate": 5
+      },
+      "warmed_acknowledged_active_rejected": {
+        "baseline": 0,
+        "candidate": 0
+      }
+    },
+    {
+      "offset_ms": 10,
+      "all_steering": 854,
+      "warmed_acknowledged_active_neighbors": 502,
+      "total_rejected": {
+        "baseline": 11,
+        "candidate": 5
+      },
+      "warmed_acknowledged_active_rejected": {
+        "baseline": 0,
+        "candidate": 0
+      }
+    },
+    {
+      "offset_ms": 20,
+      "all_steering": 854,
+      "warmed_acknowledged_active_neighbors": 502,
+      "total_rejected": {
+        "baseline": 12,
+        "candidate": 5
+      },
+      "warmed_acknowledged_active_rejected": {
+        "baseline": 3,
+        "candidate": 0
+      }
+    }
+  ]
+}

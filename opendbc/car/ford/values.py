@@ -42,11 +42,26 @@ class CarControllerParams:
 class FordSafetyFlags(IntFlag):
   LONG_CONTROL = 1
   CANFD = 2
+  ANGLE = 4
+  PINION_CURVATURE = 8
 
 
 class FordFlags(IntFlag):
   # Static flags
   CANFD = 1
+  # Initialized only for the Expedition CAN-FD fixed vehicle model.
+  PINION_CURVATURE = 2
+
+
+class FordPrefLateralControl(IntFlag):
+  """Lateral control mode preference for Ford vehicles.
+
+  Fork policy: default to angle for improved steering feel on supported platforms.
+  curvature (0) = stock upstream curvature-only mode
+  angle (1) = path_angle-primary mode with c0/c2/c3 zeroed
+  """
+  curvature = 0
+  angle = 1
 
 
 class RADAR:
@@ -145,7 +160,7 @@ class CAR(Platforms):
   )
   FORD_EXPEDITION_MK4 = FordCANFDPlatformConfig(
     [FordCarDocs("Ford Expedition 2022-24", "Co-Pilot360 Assist 2.0", hybrid=False)],
-    CarSpecs(mass=2000, wheelbase=3.69, steerRatio=17.0),
+    CarSpecs(mass=2742, wheelbase=3.1115, steerRatio=19.6),
   )
   FORD_F_150_MK14 = FordCANFDPlatformConfig(
     [FordCarDocs("Ford F-150 2021-23", "Co-Pilot360 Assist 2.0", hybrid=True)],

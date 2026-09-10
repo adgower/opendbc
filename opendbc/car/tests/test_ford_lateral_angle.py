@@ -7,9 +7,11 @@ from unittest.mock import MagicMock
 from opendbc.car.ford.lateral_angle import (
   LateralAngle, HumanTurnDetector, AngleLateralResult,
   _get_platform_gains, _GAIN_NEUTRAL, _GAIN_EXPEDITION,
+  _FORD_LOW_SPEED_FACTOR_ANG, _FORD_HIGH_SPEED_FACTOR_ANG,
   FORD_DBC_PATH_ANGLE_MIN, FORD_DBC_PATH_ANGLE_MAX,
 )
 from opendbc.car.ford.values import CAR
+from numpy import interp
 
 
 class TestGetPlatformGains(unittest.TestCase):
@@ -55,6 +57,101 @@ class TestGetPlatformGains(unittest.TestCase):
     """CAN vehicles should use neutral gains (not platform-tuned)."""
     gains = _get_platform_gains(CAR.FORD_ESCAPE_MK4)
     self.assertEqual(gains, _GAIN_NEUTRAL)
+
+
+class TestSpeedFactorConstants(unittest.TestCase):
+  """Tests for BP-equivalent speed factor constants.
+
+  PROVISIONAL FORK TUNING: baked constants equivalent to BluePilot:
+  - FordLowSpeedFactor_ang = 1.15 (+0.15 from default 1.0)
+  - FordHighSpeedFactor_ang = 0.98 (-0.02 from default 1.0)
+  Applied to high-curvature gain arm only.
+  """
+
+  def test_low_speed_factor_value(self):
+    """Low speed factor matches BP FordLowSpeedFactor_ang=1.15."""
+    self.assertAlmostEqual(_FORD_LOW_SPEED_FACTOR_ANG, 1.15, places=3)
+
+  def test_high_speed_factor_value(self):
+    """High speed factor matches BP FordHighSpeedFactor_ang=0.98."""
+    self.assertAlmostEqual(_FORD_HIGH_SPEED_FACTOR_ANG, 0.98, places=3)
+
+  def test_gain_expedition_unchanged(self):
+    """_GAIN_EXPEDITION remains (1.425, 1.425) - speed factors are separate."""
+    self.assertEqual(_GAIN_EXPEDITION, (1.425, 1.425))
+
+
+class TestCurvatureFactorInterpolation(unittest.TestCase):
+  """Tests for curvature factor interpolation at different speeds.
+
+  Verifies the BP speed factor behavior:
+  - At low speed (≤13.5 m/s): low-κ=1.0, high-κ=1.30*1.15=1.495
+  - At high speed (≥26.82 m/s): low-κ=1.425, high-κ=1.425*0.98=1.3965
+  """
+
+  def test_low_speed_low_curvature_factor(self):
+    """At ≤13.5 m/s, low-curvature gain is 1.0 (unchanged)."""
+    v_ego = 13.5
+    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, _GAIN_EXPEDITION[0]]))
+    self.assertAlmostEqual(low_gain_interp, 1.0, places=4)
+
+  def test_low_speed_high_curvature_factor(self):
+    """At ≤13.5 m/s, high-curvature gain is 1.30*1.15=1.495."""
+    v_ego = 13.5
+    expected = 1.30 * _FORD_LOW_SPEED_FACTOR_ANG  # 1.30 * 1.15 = 1.495
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * _FORD_LOW_SPEED_FACTOR_ANG,
+                                     _GAIN_EXPEDITION[1] * _FORD_HIGH_SPEED_FACTOR_ANG]))
+    self.assertAlmostEqual(high_gain_interp, expected, places=4)
+    self.assertAlmostEqual(high_gain_interp, 1.495, places=3)
+
+  def test_high_speed_low_curvature_factor(self):
+    """At ≥26.82 m/s, low-curvature gain is 1.425 (platform gain, unchanged)."""
+    v_ego = 26.82
+    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, _GAIN_EXPEDITION[0]]))
+    self.assertAlmostEqual(low_gain_interp, 1.425, places=4)
+
+  def test_high_speed_high_curvature_factor(self):
+    """At ≥26.82 m/s, high-curvature gain is 1.425*0.98=1.3965."""
+    v_ego = 26.82
+    expected = _GAIN_EXPEDITION[1] * _FORD_HIGH_SPEED_FACTOR_ANG  # 1.425 * 0.98 = 1.3965
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * _FORD_LOW_SPEED_FACTOR_ANG,
+                                     _GAIN_EXPEDITION[1] * _FORD_HIGH_SPEED_FACTOR_ANG]))
+    self.assertAlmostEqual(high_gain_interp, expected, places=4)
+    self.assertAlmostEqual(high_gain_interp, 1.3965, places=4)
+
+  def test_midpoint_interpolation(self):
+    """At midpoint speed (20.16 m/s), gains interpolate linearly."""
+    v_ego = 20.16  # Midpoint between 13.5 and 26.82
+    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, _GAIN_EXPEDITION[0]]))
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * _FORD_LOW_SPEED_FACTOR_ANG,
+                                     _GAIN_EXPEDITION[1] * _FORD_HIGH_SPEED_FACTOR_ANG]))
+    # Low-curvature: midpoint between 1.0 and 1.425 = 1.2125
+    self.assertAlmostEqual(low_gain_interp, 1.2125, places=3)
+    # High-curvature: midpoint between 1.495 and 1.3965 = 1.44575
+    self.assertAlmostEqual(high_gain_interp, 1.44575, places=3)
+
+  def test_below_low_speed_threshold(self):
+    """Below 13.5 m/s, gains are at low-speed values (extrapolation clamps)."""
+    v_ego = 10.0
+    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, _GAIN_EXPEDITION[0]]))
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * _FORD_LOW_SPEED_FACTOR_ANG,
+                                     _GAIN_EXPEDITION[1] * _FORD_HIGH_SPEED_FACTOR_ANG]))
+    self.assertAlmostEqual(low_gain_interp, 1.0, places=4)
+    self.assertAlmostEqual(high_gain_interp, 1.495, places=3)
+
+  def test_above_high_speed_threshold(self):
+    """Above 26.82 m/s, gains are at high-speed values (extrapolation clamps)."""
+    v_ego = 35.0
+    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, _GAIN_EXPEDITION[0]]))
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * _FORD_LOW_SPEED_FACTOR_ANG,
+                                     _GAIN_EXPEDITION[1] * _FORD_HIGH_SPEED_FACTOR_ANG]))
+    self.assertAlmostEqual(low_gain_interp, 1.425, places=4)
+    self.assertAlmostEqual(high_gain_interp, 1.3965, places=4)
 
 
 class TestHumanTurnDetector(unittest.TestCase):

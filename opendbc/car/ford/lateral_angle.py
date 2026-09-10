@@ -39,6 +39,14 @@ _GAIN_NEUTRAL = (1.0, 1.0)
 # NOT Navigator-verified. Subject to change with real-world validation.
 _GAIN_EXPEDITION = (1.425, 1.425)
 
+# PROVISIONAL FORK TUNING: BluePilot-equivalent speed factors.
+# FordLowSpeedFactor_ang = 1.15 (+0.15 from default 1.0)
+# FordHighSpeedFactor_ang = 0.98 (-0.02 from default 1.0)
+# Applied to high-curvature gain arm only; dampening stays 1.0.
+# Not a Params/UI port; baked constants for Navigator angle-mode testing.
+_FORD_LOW_SPEED_FACTOR_ANG = 1.15
+_FORD_HIGH_SPEED_FACTOR_ANG = 0.98
+
 _EXPEDITION_CARS = frozenset({
   CAR.FORD_EXPEDITION_MK4,
 })
@@ -161,8 +169,12 @@ class LateralAngle:
                              current_curvature + CarControllerParams.CURVATURE_ERROR))
 
     # Speed-interpolated gain: 1.0 at low speed, platform-specific at high speed
+    # Low-curvature arm: unchanged (dampening=1.0 implicit)
     low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, self.gain_low_curv]))
-    high_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.30, self.gain_high_curv]))
+    # High-curvature arm: apply BP speed factors (low_speed_curv_factor at 13.5, high_speed_curv_factor at 26.82)
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * _FORD_LOW_SPEED_FACTOR_ANG,
+                                     self.gain_high_curv * _FORD_HIGH_SPEED_FACTOR_ANG]))
 
     # Curvature magnitude selects between low-curv and high-curv gain
     curvature_factor = float(interp(abs(kappa_cmd), [0.0007, 0.001], [low_gain_interp, high_gain_interp]))

@@ -9,6 +9,7 @@ from opendbc.car.can_definitions import CanData
 from opendbc.car.car_helpers import interfaces
 from opendbc.car.structs import CarParams
 from opendbc.car.fingerprints import FW_VERSIONS
+from opendbc.car.ford.values import CAR as FORD_CAR
 from opendbc.car.fw_versions import FW_QUERY_CONFIGS, FUZZY_EXCLUDE_ECUS, VERSIONS, build_fw_dict, \
                                     match_fw_to_car, get_brand_ecu_matches, get_fw_versions, get_present_ecus
 from opendbc.car.vin import get_vin
@@ -97,6 +98,31 @@ class TestFwFingerprint(unittest.TestCase):
       # There won't always be a match due to shared FW, but if there is it should be correct
       elif len(matches):
         self.assertFingerprints(matches, car_model)
+
+  def test_navigator_production_exact_and_fuzzy_match(self):
+    """The measured complete Navigator ECU set must select only Navigator through both matcher paths."""
+    navigator = FORD_CAR.FORD_NAVIGATOR_MK4
+    measured_fw = (
+      (Ecu.eps, 0x730, b'NL14-14D003-AE\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'),
+      (Ecu.abs, 0x760, b'PL14-2D053-AB\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'),
+      (Ecu.fwdRadar, 0x764, b'ML3T-14D049-AL\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'),
+      (Ecu.fwdCamera, 0x706, b'RJ6T-14H102-BAH\x00\x00\x00\x00\x00\x00\x00\x00\x00'),
+    )
+
+    # Guard against a false-green test run with an empty or incompletely registered global matcher.
+    assert VERSIONS
+    assert VERSIONS.get('ford')
+    assert navigator in VERSIONS['ford']
+    assert navigator in FW_VERSIONS
+    assert FW_QUERY_CONFIGS['ford'].match_fw_to_car_fuzzy is not None
+
+    car_fw = [CarFw(ecu=ecu, fwVersion=fw, brand='ford', address=addr) for ecu, addr, fw in measured_fw]
+
+    exact, exact_matches = match_fw_to_car(car_fw, '', log=False)
+    assert (exact, exact_matches) == (True, {navigator})
+
+    fuzzy, fuzzy_matches = match_fw_to_car(car_fw, '', allow_exact=False, log=False)
+    assert (fuzzy, fuzzy_matches) == (False, {navigator})
 
   def test_fw_version_lists(self):
     for car_model, ecus in FW_VERSIONS.items():

@@ -10,11 +10,13 @@ Live map: path_angle = kappa_cmd * v_ego * curvature_factor
 Human-turn mode-0: when the driver manually turns (steeringPressed + large wheel angle),
 lateral control is forced inactive (mode 0) so the PSCM releases cleanly.
 """
+import math
 from dataclasses import dataclass
 from numpy import clip, interp
 
 from opendbc.car import DT_CTRL
-from opendbc.car.ford.values import CAR, CarControllerParams
+from opendbc.car.ford.values import CAR, CarControllerParams, FordFlags
+from opendbc.car.vehicle_model import VehicleModel
 
 
 @dataclass
@@ -35,6 +37,10 @@ _GAIN_NEUTRAL = (1.0, 1.0)
 # PROVISIONAL FORK TUNING: Expedition gain from BluePilot bp-dev-expedition.
 # NOT Navigator-verified. Subject to change with real-world validation.
 _GAIN_EXPEDITION = (1.425, 1.425)
+
+# Provisional Expedition speed multipliers for the high-curvature arm only.
+_FORD_LOW_SPEED_FACTOR_ANG = 1.20
+_FORD_HIGH_SPEED_FACTOR_ANG = 0.97
 
 _EXPEDITION_CARS = frozenset({
   CAR.FORD_EXPEDITION_MK4,
@@ -94,6 +100,7 @@ class LateralAngle:
 
   def __init__(self, CP):
     self.CP = CP
+    self.pinion_model = VehicleModel(CP) if CP.flags & FordFlags.PINION_CURVATURE else None
     low_gain, high_gain = _get_platform_gains(CP.carFingerprint)
     self.gain_low_curv = low_gain
     self.gain_high_curv = high_gain
@@ -106,6 +113,8 @@ class LateralAngle:
 
   def get_current_curvature(self, CS) -> float:
     """Returns measured curvature from yaw rate and vehicle speed."""
+    if self.pinion_model is not None:
+      return -self.pinion_model.calc_curvature(math.radians(CS.out.steeringAngleDeg), CS.out.vEgoRaw, 0.)
     return -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
 
   def update(self, CC, CS, actuators) -> AngleLateralResult:
@@ -150,7 +159,10 @@ class LateralAngle:
 
     # Speed-interpolated gain: 1.0 at low speed, platform-specific at high speed
     low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, self.gain_low_curv]))
-    high_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.30, self.gain_high_curv]))
+    low_speed_factor = _FORD_LOW_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
+    high_speed_factor = _FORD_HIGH_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * low_speed_factor, self.gain_high_curv * high_speed_factor]))
 
     # Curvature magnitude selects between low-curv and high-curv gain
     curvature_factor = float(interp(abs(kappa_cmd), [0.0007, 0.001], [low_gain_interp, high_gain_interp]))

@@ -152,6 +152,7 @@ class TestLateralAngle(unittest.TestCase):
     """Create a mock CarParams."""
     cp = MagicMock()
     cp.carFingerprint = car_fingerprint
+    cp.flags = 0
     return cp
 
   def setUp(self):

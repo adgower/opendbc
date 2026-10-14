@@ -43,6 +43,7 @@ class FordSafetyFlags(IntFlag):
   LONG_CONTROL = 1
   CANFD = 2
   ANGLE = 4
+  PINION_CURVATURE = 8
 
 
 class FordFlags(IntFlag):
@@ -51,6 +52,7 @@ class FordFlags(IntFlag):
 
   # Static flags
   CANFD = 1
+  PINION_CURVATURE = 2
 
 
 class FordPrefLateralControl(IntFlag):

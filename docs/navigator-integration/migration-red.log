@@ -1,0 +1,96 @@
+test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) ... 
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=0.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=2.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=5.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=10.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=15.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=20.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=30.0) ... FAIL
+  test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=40.0) ... FAIL
+test_navigator_geometry_on_fork_profile (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_navigator_geometry_on_fork_profile) ... FAIL
+test_pinion_option_is_available (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_pinion_option_is_available) ... FAIL
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=0.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.27100270582468855 != 0.3213883978788366 within 2e-08 delta (0.05038569205414806 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=2.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.270510865153994 != 0.32069689951763936 within 2e-08 delta (0.05018603436364538 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=5.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.26795771486558567 != 0.31711480711138007 within 2e-08 delta (0.0491570922457944 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=10.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.25921991683390205 != 0.304949800587231 within 2e-08 delta (0.045729883753328926 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=15.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.24585799806591263 != 0.2866242311917779 within 2e-08 delta (0.04076623312586525 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=20.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.2293097857443347 != 0.26438149487690005 within 2e-08 delta (0.035071709132565354 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=30.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.19232419052385302 != 0.2164008366402198 within 2e-08 delta (0.024076646116366784 difference)
+
+======================================================================
+FAIL: test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) (speed=40.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 29, in test_mass_normalized_model_matches_preserved_fixed_model
+    self.assertAlmostEqual(vm.curvature_factor(speed), expected, delta=2e-8)
+AssertionError: 0.1568959361468288 != 0.1725580292470179 within 2e-08 delta (0.015662093100189095 difference)
+
+======================================================================
+FAIL: test_navigator_geometry_on_fork_profile (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_navigator_geometry_on_fork_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 12, in test_navigator_geometry_on_fork_profile
+    self.assertAlmostEqual(cp.wheelbase, 3.1115, places=5)
+AssertionError: 3.690000057220459 != 3.1115 within 5 places (0.578500057220459 difference)
+
+======================================================================
+FAIL: test_pinion_option_is_available (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_pinion_option_is_available)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 17, in test_pinion_option_is_available
+    self.assertIsNotNone(importlib.util.find_spec('opendbc.car.ford.pinion'))
+AssertionError: unexpectedly None
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.003s
+
+FAILED (failures=10)

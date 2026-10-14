@@ -52,7 +52,11 @@ class CarController(CarControllerBase):
 
     # Fork policy: default to angle mode for improved steering feel
     self.lateral_control_mode = FordPrefLateralControl.angle
-    self.lateral_angle = LateralAngle(CP)
+    if CP.flags & FordFlags.LOW_SPEED_GAIN and CP.flags & FordFlags.PINION_CURVATURE and CP.carFingerprint == CAR.FORD_EXPEDITION_MK4:
+      from opendbc.car.ford.lateral_angle_low_speed_prototype import LowSpeedGainPrototype
+      self.lateral_angle = LowSpeedGainPrototype(CP)
+    else:
+      self.lateral_angle = LateralAngle(CP)
     self.angle_mode_engaged = False
     self.shadow_curvature = 0.0
 

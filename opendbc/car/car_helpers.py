@@ -149,7 +149,7 @@ def fingerprint(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_mu
 
 
 def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multiplexing: ObdCallback, alpha_long_allowed: bool,
-            is_release: bool, cached_params: CarParamsT | None = None, *, ford_pinion_curvature: bool = False):
+            is_release: bool, cached_params: CarParamsT | None = None, *, ford_pinion_curvature: bool = False, ford_low_speed_gain: bool = False):
   candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(can_recv, can_send, set_obd_multiplexing, cached_params)
 
   if candidate is None:
@@ -161,6 +161,10 @@ def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multip
   if CP.brand == "ford":
     from opendbc.car.ford.pinion import configure_pinion_curvature
     configure_pinion_curvature(CP, ford_pinion_curvature)
+    from opendbc.car.ford.values import FordFlags
+    CP.flags &= ~int(FordFlags.LOW_SPEED_GAIN)
+    if ford_low_speed_gain and CP.flags & FordFlags.PINION_CURVATURE:
+      CP.flags |= int(FordFlags.LOW_SPEED_GAIN)
   CP.carVin = vin
   CP.carFw = car_fw
   CP.fingerprintSource = source

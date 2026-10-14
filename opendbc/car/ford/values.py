@@ -53,6 +53,7 @@ class FordFlags(IntFlag):
   # Static flags
   CANFD = 1
   PINION_CURVATURE = 2
+  LOW_SPEED_GAIN = 4
 
 
 class FordPrefLateralControl(IntFlag):

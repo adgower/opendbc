@@ -1,4 +1,4 @@
-"""LOCAL EXPERIMENT ONLY. Explicit replay selection; never selected by CarController.
+"""EXPERIMENTAL VEHICLE TRIAL. Explicit opt-in, with pinion feedback required.
 
 Trial calibration, not validated vehicle tuning. Retains the owner's 1.20/0.97
 coefficients and all inherited feedback, override, signal, and rate limits.

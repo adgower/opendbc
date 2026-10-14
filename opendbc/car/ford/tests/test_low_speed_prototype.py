@@ -88,3 +88,33 @@ def test_inherited_limits_and_override_remain_effective():
   cc.latActive = False
   result = trial.update(cc, cs, SimpleNamespace(curvature=.002))
   assert result.path_angle == 0. and not trial.human_turn_active
+
+
+def test_deployment_selector_requires_pinion_and_is_opt_in():
+  from opendbc.car import car_helpers
+  from opendbc.car.ford.carcontroller import CarController
+  from opendbc.car.ford.values import DBC, FordFlags
+  from types import SimpleNamespace
+  from unittest.mock import patch
+
+  def get(pinion, gain):
+    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+
+    class Fixture:
+      @staticmethod
+      def get_params(*args, **kwargs):
+        return cp
+
+      def __new__(cls, config):
+        return SimpleNamespace(CP=config)
+
+    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.FORD_EXPEDITION_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
+         patch.dict(car_helpers.interfaces, {CAR.FORD_EXPEDITION_MK4: Fixture}):
+      ci = car_helpers.get_car(None, None, None, False, False, ford_pinion_curvature=pinion, ford_low_speed_gain=gain)
+    return ci.CP, CarController(DBC[CAR.FORD_EXPEDITION_MK4], ci.CP)
+
+  for pinion, gain in [(False, False), (False, True), (True, False), (True, True)]:
+    cp, cc = get(pinion, gain)
+    assert bool(cp.flags & FordFlags.LOW_SPEED_GAIN) == (pinion and gain)
+    assert isinstance(cc.lateral_angle, LowSpeedGainPrototype) == (pinion and gain)
+    assert cp.safetyConfigs[-1].safetyParam == (10 if pinion else 2)

@@ -109,7 +109,7 @@ static int16_t ford_shadow_curvature_raw = 0;  // wire units, scale 1e-6 1/m
 // shadow_curvature is packed at scale 1e-6 1/m; convert to the CAN units curvature checks
 // expect, matching FORD_STEERING_LIMITS.curvature_to_can (50000, i.e. physical scale 2e-5):
 // raw * 1e-6 * 50000 = raw * 0.05
-#define FORD_SHADOW_CURVATURE_TO_CAN(raw) ((int)((float)(raw) * 0.05f))
+#define FORD_SHADOW_CURVATURE_TO_CAN(raw) ((int)(raw) / 20)
 
 // Path angle rate limits for angle mode.
 // Mirrors lateral_angle.py _soft_roc with +2% headroom so panda is never stricter.
@@ -348,7 +348,11 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
     // byte 4 bit 0: angle_mode_engaged
     // bytes 5-6: shadow_curvature (int16, scale 1e-6 1/m)
     ford_angle_mode_engaged = (msg->data[4] & 0x1U) != 0U;
-    ford_shadow_curvature_raw = (int16_t)((msg->data[5] << 8) | msg->data[6]);
+    int raw_shadow = (msg->data[5] << 8) | msg->data[6];
+    if (raw_shadow >= 32768) {
+      raw_shadow -= 65536;
+    }
+    ford_shadow_curvature_raw = (int16_t)raw_shadow;
   }
 
   // Safety check for LateralMotionControl action
@@ -382,7 +386,6 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
     unsigned int raw_path_offset = ((msg->data[4] & 0x3U) << 8) | msg->data[5];
 
     int desired_curvature = raw_curvature - FORD_INACTIVE_CURVATURE;
-    int desired_path_angle = raw_path_angle - FORD_INACTIVE_PATH_ANGLE;
 
     bool violation = false;
 
@@ -393,6 +396,7 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
     violation |= (raw_path_offset != FORD_INACTIVE_PATH_OFFSET);
 
     if (ford_angle_mode_engaged) {
+      int desired_path_angle = raw_path_angle - FORD_INACTIVE_PATH_ANGLE;
       // Angle mode: path_angle is the actuator, curvature is held at 0
       // Allow full DBC path_angle range
       int path_angle_min_can = (int)(FORD_DBC_PATH_ANGLE_MIN * FORD_PATH_ANGLE_LIMITS.angle_deg_to_can);

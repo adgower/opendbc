@@ -1,0 +1,166 @@
+........................................................................................... [  1%]
+...................................... [  2%]
+........................................................................ [  3%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+......................................................................................................ss..... [  8%]
+.............................ssss..ssssssssssssssssssssss............... [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 14%]
+.......................ssssssssssss..ss......................ss....ss... [ 15%]
+...........ss....ssssss..........................................ss..... [ 17%]
+...........ssss........................sssssss................................s..............s [ 19%]
+..s....s.........s............s..s...s...........s [ 19%]
+............s..s...s...........s............s..s...s...........s.... [ 21%]
+........s..s....s.........sssssss.............................sssssss. [ 22%]
+.......ssssssssssssssssssssssssssssssss...s.............s..s...........sssssssssssssssssssssss [ 24%]
+ssssssssssss...s...............s..s...............s...............s..s...............s....................s..s............ssssssssssssssss [ 27%]
+sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss... [ 28%]
+s..............s..s...s.................................s........sssssssssssssssssss [ 30%]
+ssssssssss...s...........s..s...s.............................s..... [ 31%]
+.....s..............s..s...s.................................s..........ssssssssssss [ 33%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 34%]
+ssssssssssssssssss...s.............s..s.s.........s.............s..s.s [ 35%]
+......ssssssssssssssssssssssssssssssssssssssssssssssssssss..s......... [ 37%]
+.s..s.s.........s............s..s.s.........s................s..s..s [ 38%]
+........sssssssssssssssssssssssss..s..........s..s.s.........s...... [ 39%]
+......s..s.s...........s.............s..s..s........ssssssssssssssss [ 41%]
+sssssssss..s..........s..s.s.........s............s..s.s.......sssss [ 42%]
+ssssss...s...........s..s...s..............s...........s..s...s..... [ 43%]
+.........s...........s..s...s..............s...........s..s...s..... [ 45%]
+.........s...........s..s...s..............s...........s..s...s..... [ 46%]
+.........s...........s..s...s..............s...........s..s...s..... [ 47%]
+...........s...............s..s...s..................s..............s. [ 49%]
+.s...s..................s...............s..s...s.............sssssss [ 50%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 51%]
+...s...........s..s...s..............s...........s..s...s........... [ 53%]
+...s...........s..s...s..............s...........s..s...s........... [ 54%]
+...s...........s..s...s..............s...........s..s...s........... [ 55%]
+sssssssssssssssssssssssssssssssssss....s...........s..s...s........... [ 57%]
+....s...........s..s...s...............s...........s..s...s......... [ 58%]
+......s...........s..s...s...............s...........s..s...s....... [ 59%]
+........s...........s..s...s..............s...........s..s...s...... [ 61%]
+........s...........s..s...s................s.............s..s...s.. [ 62%]
+...........ssssssssssssssssssssssssssssssssssssssss.....s.............s. [ 63%]
+.s...s..................s.............s..s...s..................s... [ 65%]
+..........s..s...s..................s.............s..s...s.......... [ 66%]
+........s.............s..s...s..................s.............s..s...s [ 67%]
+...................s.............s..s...s...................s....... [ 69%]
+......s..s...s...................s.............s..s...s............. [ 70%]
+......s.............s..s...s...................s.............s..s...s...................s.............s..s...s................s........... [ 73%]
+s..s...s..s.........s...........s..s....s..........s...........s..s. [ 74%]
+ss..........s...........s..s.ss..........s...........s..s.ss...... [ 75%]
+.sssssssssssssssssssssssssssss..s...........s..s.s.s.........sssssssss [ 77%]
+sssssssssssssssssssssssss......s..........s..s...................s.... [ 78%]
+......s..s................ssssssssssssssssssssssssssssssssssssssssssss [ 79%]
+sssssssssssssssssssssssssssssssss...s...........s..s...s..........ssss [ 81%]
+ssssssssssssssssssssssssssss...s...........s..s...s.............s..... [ 82%]
+.....s..s...s..........s..........s..s...s.......sssssssssssssssssss [ 83%]
+ssssssssssssssssssss....s.................s..s....................s... [ 85%]
+.............s..s...................sssssssssssssssssssssssssssss....s [ 86%]
+..............s..s....s.................s................s..s.s.s... [ 87%]
+........s..............s..s....s.............sssssssssssssssssssssssss [ 89%]
+sssss.....s..............s..s....s..................s................s [ 90%]
+..s.s.s.......ssssssssssssssssssssssssssssss.....s............s..s..s...........ss...........s..s..s......ssssssssssssssssssssssssssssssss [ 93%]
+ssss.....s.....................s....s................s......... [ 94%]
+............s....s.............ssssssssssssssssssssssssssssss.. [ 95%]
+.s...........s..s....s........ssssssssssssssssssssssssssssss...s...... [ 97%]
+....s..s....s............s............s..s....s........sssssssssssss [ 98%]
+ssssssssssssssss...s..........s..s...s.............s............s..s.. [ 99%]
+.s.........                                                            [100%]
+=================================== FAILURES ===================================
+_ TestMisraMutation.test_misra_mutation (fn=None, rule=None, should_fail=False) _
+
+self = <test_mutation.TestMisraMutation testMethod=test_misra_mutation>
+
+    def test_misra_mutation(self):
+      for fn, rule, transform, should_fail in mutations:
+        with self.subTest(fn=fn, rule=rule, should_fail=should_fail):
+          with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(ROOT, tmp, dirs_exist_ok=True,
+                            ignore=shutil.ignore_patterns('.venv', '.git', '*.ctu-info'))
+    
+            # apply patch
+            if fn is not None:
+              with open(os.path.join(tmp, fn), 'r+') as f:
+                content = f.read()
+                f.seek(0)
+                f.write(transform(content))
+    
+            # run test
+            r = subprocess.run(f"OPENDBC_ROOT={tmp} opendbc/safety/tests/misra/test_misra.sh",
+                               stdout=subprocess.PIPE, cwd=ROOT, shell=True, encoding='utf8')
+            print(r.stdout) # helpful for debugging failures
+            failed = r.returncode != 0
+>           assert failed == should_fail
+E           AssertionError: assert True == False
+
+opendbc/safety/tests/misra/test_mutation.py:69: AssertionError
+_ TestMisraMutation.test_misra_mutation (fn='opendbc/safety/modes/subaru.h', rule='misra-c2012-14.2', should_fail=True) _
+
+self = <test_mutation.TestMisraMutation testMethod=test_misra_mutation>
+
+    def test_misra_mutation(self):
+      for fn, rule, transform, should_fail in mutations:
+        with self.subTest(fn=fn, rule=rule, should_fail=should_fail):
+          with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(ROOT, tmp, dirs_exist_ok=True,
+                            ignore=shutil.ignore_patterns('.venv', '.git', '*.ctu-info'))
+    
+            # apply patch
+            if fn is not None:
+              with open(os.path.join(tmp, fn), 'r+') as f:
+                content = f.read()
+                f.seek(0)
+                f.write(transform(content))
+    
+            # run test
+            r = subprocess.run(f"OPENDBC_ROOT={tmp} opendbc/safety/tests/misra/test_misra.sh",
+                               stdout=subprocess.PIPE, cwd=ROOT, shell=True, encoding='utf8')
+            print(r.stdout) # helpful for debugging failures
+            failed = r.returncode != 0
+            assert failed == should_fail
+            if should_fail:
+>             assert rule in r.stdout, "MISRA test failed but not for the correct violation"
+E             AssertionError: MISRA test failed but not for the correct violation
+E             assert 'misra-c2012-14.2' in ''
+E              +  where '' = CompletedProcess(args='OPENDBC_ROOT=/var/folders/y3/h65tdx191tq8d3fg1gm1td980000gn/T/tmpx1yev268 opendbc/safety/tests/misra/test_misra.sh', returncode=2, stdout='').stdout
+
+opendbc/safety/tests/misra/test_mutation.py:71: AssertionError
+_ TestMisraMutation.test_misra_mutation (fn='opendbc/safety/modes/psa.h', rule='misra-c2012-13.3', should_fail=True) _
+
+self = <test_mutation.TestMisraMutation testMethod=test_misra_mutation>
+
+    def test_misra_mutation(self):
+      for fn, rule, transform, should_fail in mutations:
+        with self.subTest(fn=fn, rule=rule, should_fail=should_fail):
+          with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(ROOT, tmp, dirs_exist_ok=True,
+                            ignore=shutil.ignore_patterns('.venv', '.git', '*.ctu-info'))
+    
+            # apply patch
+            if fn is not None:
+              with open(os.path.join(tmp, fn), 'r+') as f:
+                content = f.read()
+                f.seek(0)
+                f.write(transform(content))
+    
+            # run test
+            r = subprocess.run(f"OPENDBC_ROOT={tmp} opendbc/safety/tests/misra/test_misra.sh",
+                               stdout=subprocess.PIPE, cwd=ROOT, shell=True, encoding='utf8')
+            print(r.stdout) # helpful for debugging failures
+            failed = r.returncode != 0
+            assert failed == should_fail
+            if should_fail:
+>             assert rule in r.stdout, "MISRA test failed but not for the correct violation"
+E             AssertionError: MISRA test failed but not for the correct violation
+E             assert 'misra-c2012-13.3' in ''
+E              +  where '' = CompletedProcess(args='OPENDBC_ROOT=/var/folders/y3/h65tdx191tq8d3fg1gm1td980000gn/T/tmpv6bj8bcp opendbc/safety/tests/misra/test_misra.sh', returncode=2, stdout='').stdout
+
+opendbc/safety/tests/misra/test_mutation.py:71: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(fn=None, rule=None, should_fail=False) opendbc/safety/tests/misra/test_mutation.py::TestMisraMutation::test_misra_mutation
+SUBFAILED(fn='opendbc/safety/modes/subaru.h', rule='misra-c2012-14.2', should_fail=True) opendbc/safety/tests/misra/test_mutation.py::TestMisraMutation::test_misra_mutation
+SUBFAILED(fn='opendbc/safety/modes/psa.h', rule='misra-c2012-13.3', should_fail=True) opendbc/safety/tests/misra/test_mutation.py::TestMisraMutation::test_misra_mutation
+3 failed, 3746 passed, 1690 skipped, 24670 subtests passed in 44.04s

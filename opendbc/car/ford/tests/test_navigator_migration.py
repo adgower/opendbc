@@ -2,11 +2,15 @@ import importlib.util
 import unittest
 
 from opendbc.car.ford.interface import CarInterface
-from opendbc.car.ford.values import CAR
+from opendbc.car.ford.values import CAR, FordFlags
 from opendbc.car.vehicle_model import VehicleModel
 
 
 class TestNavigatorMigration(unittest.TestCase):
+  def test_trial_flags_do_not_alias_blind_spot_detection(self):
+    self.assertEqual(FordFlags.PINION_CURVATURE & FordFlags.HAS_BSM, 0)
+    self.assertEqual(FordFlags.LOW_SPEED_GAIN & FordFlags.HAS_BSM, 0)
+
   def test_navigator_geometry_on_fork_profile(self):
     cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
     self.assertAlmostEqual(cp.wheelbase, 3.1115, places=5)

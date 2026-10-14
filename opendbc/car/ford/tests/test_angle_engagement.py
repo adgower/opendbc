@@ -7,7 +7,6 @@ from opendbc.car.ford import fordcan
 from opendbc.car.ford.carcontroller import CarController
 from opendbc.car.ford.values import CAR, DBC, FordFlags
 from opendbc.safety.tests.libsafety import libsafety_py
-from opendbc.safety.tests.test_ford import checksum
 
 
 class TestAngleEngagement(unittest.TestCase):
@@ -32,7 +31,7 @@ class TestAngleEngagement(unittest.TestCase):
       msg = self.controller.packer.make_can_msg("BrakeSysFeatures", 0, {
         "Veh_V_ActlBrk": speed * 3.6, "VehVActlBrk_D_Qf": 3, "VehVActlBrk_No_Cnt": counter,
       })
-      addr, data, bus = checksum(msg)
+      addr, data, bus = msg
       self.assertTrue(self.safety.safety_rx_hook(libsafety_py.make_CANPacket(addr, bus, data)))
     self.safety.set_curvature_meas(0, 0)
 

@@ -6,11 +6,10 @@ from opendbc.car import structs
 from opendbc.car.ford.interface import CarInterface
 from opendbc.car.ford.pinion import configure_pinion_curvature
 from opendbc.car.ford.lateral_angle import LateralAngle
-from opendbc.car.ford.values import CAR
+from opendbc.car.ford.values import CAR, FordFlags
 from opendbc.car.vehicle_model import VehicleModel
 from opendbc.safety.tests.libsafety import libsafety_py
 from opendbc.safety.tests.common import CANPackerSafety
-from opendbc.safety.tests.test_ford import checksum
 
 
 class TestPinionCurvature(unittest.TestCase):
@@ -23,7 +22,7 @@ class TestPinionCurvature(unittest.TestCase):
     self.packer = CANPackerSafety('ford_lincoln_base_pt')
 
   def rx(self, name, values, bus=0):
-    return self.safety.safety_rx_hook(self.packer.make_can_msg_safety(name, bus, values, fix_checksum=checksum))
+    return self.safety.safety_rx_hook(self.packer.make_can_msg_safety(name, bus, values))
 
   def pinion(self, angle=30., counter=0, quality=3, bus=0):
     return self.rx('SteeringPinion_Data', {'StePinComp_An_Est': angle, 'StePinAn_No_Cnt': counter,
@@ -56,7 +55,7 @@ class TestPinionCurvature(unittest.TestCase):
       cp = CarInterface.get_non_essential_params(car)
       configure_pinion_curvature(cp, True)
       expected = car == CAR.FORD_EXPEDITION_MK4
-      self.assertEqual(bool(cp.flags & 2), expected, car)
+      self.assertEqual(bool(cp.flags & FordFlags.PINION_CURVATURE), expected, car)
       self.assertEqual(bool(cp.safetyConfigs[-1].safetyParam & 8), expected, car)
 
   def test_python_and_firmware_measure_same_fixed_model(self):
@@ -110,7 +109,7 @@ class TestPinionCurvature(unittest.TestCase):
     self.assertFalse(self.steer())
 
   def test_flag_off_retains_yaw_measurement(self):
-    self.cp.flags &= ~2
+    self.cp.flags &= ~int(FordFlags.PINION_CURVATURE)
     state = SimpleNamespace(out=structs.CarState(vEgoRaw=20., steeringAngleDeg=90., yawRate=0.2))
     self.assertAlmostEqual(LateralAngle(self.cp).get_current_curvature(state), -0.01)
     self.safety.set_safety_hooks(6, 2)
@@ -150,7 +149,7 @@ class TestPinionCurvature(unittest.TestCase):
     raw_yaw = state.out.yawRate
     expected = lateral.get_current_curvature(state)
     self.cp.steerRatio = 5.
-    self.cp.tireStiffnessFront *= 2.
+    self.cp.tireStiffnessFrontPerMass *= 2.
     self.assertEqual(lateral.get_current_curvature(state), expected)
     self.assertEqual(state.out.yawRate, raw_yaw)
 

@@ -1,0 +1,143 @@
+test_mass_normalized_model_matches_preserved_fixed_model (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_mass_normalized_model_matches_preserved_fixed_model) ... ok
+test_navigator_geometry_on_fork_profile (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_navigator_geometry_on_fork_profile) ... ok
+test_pinion_option_is_available (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_pinion_option_is_available) ... ok
+test_default_off_keeps_flags_and_yaw (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_default_off_keeps_flags_and_yaw) ... ok
+test_disable_clears_previous_option (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_disable_clears_previous_option) ... ERROR
+test_enable_preserves_longitudinal_flag (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_enable_preserves_longitudinal_flag) ... ERROR
+test_enabled_pairs_controller_and_safety_flags (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_enabled_pairs_controller_and_safety_flags) ... ERROR
+test_geometry_mismatch_rejected_before_flags_change (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_geometry_mismatch_rejected_before_flags_change) ... ERROR
+test_get_car_applies_option_before_controller_construction (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_get_car_applies_option_before_controller_construction) ... ERROR
+test_get_car_clears_option_even_with_prior_mode_cache (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_get_car_clears_option_even_with_prior_mode_cache) ... ERROR
+test_owner_gains_preserved (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_owner_gains_preserved) ... ok
+test_unsupported_platform_unchanged (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_unsupported_platform_unchanged) ... ok
+
+======================================================================
+ERROR: test_disable_clears_previous_option (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_disable_clears_previous_option)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 45, in test_disable_clears_previous_option
+    self.configure(self.cp, True)
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 19, in configure
+    return configure_pinion_curvature(cp, enabled)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in configure_pinion_curvature
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in <genexpr>
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+                            ^^^^^^^^^^^^^^^^
+  File "capnp/lib/capnp.pyx", line 1422, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1420, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1411, in capnp.lib.capnp._DynamicStructBuilder._get
+AttributeError: capnp/schema.c++:511: failed: struct has no such member; name = mass
+stack: 109108587 109129223 108fbc5bb 108fe5fa3 10269b3cf 10248b2a3 1026697b3 10269a9a3 102574aab 1024889ab 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 1026835fb
+
+======================================================================
+ERROR: test_enable_preserves_longitudinal_flag (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_enable_preserves_longitudinal_flag)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 103, in test_enable_preserves_longitudinal_flag
+    self.configure(self.cp, True)
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 19, in configure
+    return configure_pinion_curvature(cp, enabled)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in configure_pinion_curvature
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in <genexpr>
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+                            ^^^^^^^^^^^^^^^^
+  File "capnp/lib/capnp.pyx", line 1422, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1420, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1411, in capnp.lib.capnp._DynamicStructBuilder._get
+AttributeError: capnp/schema.c++:511: failed: struct has no such member; name = mass
+stack: 109108587 109129223 108fbc5bb 108fe5fa3 10269b3cf 10248b2a3 1026697b3 10269a9a3 10248b117 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 1026835fb 1026813df
+
+======================================================================
+ERROR: test_enabled_pairs_controller_and_safety_flags (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_enabled_pairs_controller_and_safety_flags)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 35, in test_enabled_pairs_controller_and_safety_flags
+    self.configure(self.cp, True)
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 19, in configure
+    return configure_pinion_curvature(cp, enabled)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in configure_pinion_curvature
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in <genexpr>
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+                            ^^^^^^^^^^^^^^^^
+  File "capnp/lib/capnp.pyx", line 1422, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1420, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1411, in capnp.lib.capnp._DynamicStructBuilder._get
+AttributeError: capnp/schema.c++:511: failed: struct has no such member; name = mass
+stack: 109108587 109129223 108fbc5bb 108fe5fa3 10269b3cf 10248b2a3 1026697b3 10269a9a3 10248b117 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 1026835fb 1026813df
+
+======================================================================
+ERROR: test_geometry_mismatch_rejected_before_flags_change (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_geometry_mismatch_rejected_before_flags_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 60, in test_geometry_mismatch_rejected_before_flags_change
+    self.configure(self.cp, True)
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 19, in configure
+    return configure_pinion_curvature(cp, enabled)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in configure_pinion_curvature
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in <genexpr>
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+                            ^^^^^^^^^^^^^^^^
+  File "capnp/lib/capnp.pyx", line 1422, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1420, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1411, in capnp.lib.capnp._DynamicStructBuilder._get
+AttributeError: capnp/schema.c++:511: failed: struct has no such member; name = mass
+stack: 109108587 109129223 108fbc5bb 108fe5fa3 10269b3cf 10248b2a3 1026697b3 10269a9a3 10248b117 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 1026835fb 1026813df
+
+======================================================================
+ERROR: test_get_car_applies_option_before_controller_construction (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_get_car_applies_option_before_controller_construction)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 79, in test_get_car_applies_option_before_controller_construction
+    ci = car_helpers.get_car(None, None, None, False, False, None, ford_pinion_curvature=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/car_helpers.py", line 163, in get_car
+    configure_pinion_curvature(CP, ford_pinion_curvature)
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in configure_pinion_curvature
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in <genexpr>
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+                            ^^^^^^^^^^^^^^^^
+  File "capnp/lib/capnp.pyx", line 1422, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1420, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1411, in capnp.lib.capnp._DynamicStructBuilder._get
+AttributeError: capnp/schema.c++:511: failed: struct has no such member; name = mass
+stack: 109108587 109129223 108fbc5bb 108fe5fa3 10269b3cf 10248b2a3 1026697b3 10269a9a3 10248b117 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 1026835fb 1026813df
+
+======================================================================
+ERROR: test_get_car_clears_option_even_with_prior_mode_cache (opendbc.car.ford.tests.test_pinion_option.TestPinionOption.test_get_car_clears_option_even_with_prior_mode_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 83, in test_get_car_clears_option_even_with_prior_mode_cache
+    self.configure(self.cp, True)
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_pinion_option.py", line 19, in configure
+    return configure_pinion_curvature(cp, enabled)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in configure_pinion_curvature
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/pinion.py", line 24, in <genexpr>
+    if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
+                            ^^^^^^^^^^^^^^^^
+  File "capnp/lib/capnp.pyx", line 1422, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1420, in capnp.lib.capnp._DynamicStructBuilder.__getattr__
+  File "capnp/lib/capnp.pyx", line 1411, in capnp.lib.capnp._DynamicStructBuilder._get
+AttributeError: capnp/schema.c++:511: failed: struct has no such member; name = mass
+stack: 109108587 109129223 108fbc5bb 108fe5fa3 10269b3cf 10248b2a3 1026697b3 10269a9a3 10248b117 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 102661993 10248c3ff 10242d24f 10242ccfb 10248925f 1026835fb 1026813df
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.007s
+
+FAILED (errors=6)

@@ -1,0 +1,14 @@
+test_trial_flags_do_not_alias_blind_spot_detection (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_trial_flags_do_not_alias_blind_spot_detection) ... FAIL
+
+======================================================================
+FAIL: test_trial_flags_do_not_alias_blind_spot_detection (opendbc.car.ford.tests.test_navigator_migration.TestNavigatorMigration.test_trial_flags_do_not_alias_blind_spot_detection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alex/Apps/opendbc/.navigator-master-integration-20261014/opendbc/car/ford/tests/test_navigator_migration.py", line 11, in test_trial_flags_do_not_alias_blind_spot_detection
+    self.assertEqual(FordFlags.PINION_CURVATURE & FordFlags.HAS_BSM, 0)
+AssertionError: <FordFlags.HAS_BSM: 2> != 0
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)

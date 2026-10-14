@@ -7,12 +7,12 @@ from opendbc.car.structs import CarParams
 # Must match the geometry baked into ford_pinion_curvature_factor in ford.h.
 PINION_GEOMETRY = {
   'wheelbase': 3.1115,
-  'mass': 2878.,
   'centerToFront': 3.1115 * .44,
   'steerRatio': 19.6,
-  'steerRatioRear': 0.,
-  'tireStiffnessFront': 353037.28125,
-  'tireStiffnessRear': 438491.46875,
+  # The preserved Panda formula uses the old absolute stiffness and 2878 kg.
+  # Current VehicleModel uses their equivalent values per unit mass.
+  'tireStiffnessFrontPerMass': 353037.28125 / 2878.,
+  'tireStiffnessRearPerMass': 438491.46875 / 2878.,
 }
 
 

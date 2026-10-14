@@ -4,6 +4,7 @@ import random
 import unittest
 
 import opendbc.safety.tests.common as common
+from opendbc.safety.tests.libsafety import libsafety_py
 from opendbc.car.lateral import MAX_LATERAL_ACCEL, MAX_LATERAL_JERK
 from opendbc.car.ford.values import FordSafetyFlags
 from opendbc.car.structs import CarParams
@@ -551,8 +552,8 @@ class TestFordCANFDAngleModeSafety(TestFordCANFDLongitudinalSafety):
   def _angle_mode_lat_ctl2_msg(self, enabled: bool, path_angle: float, increment_timer: bool = True):
     """Send LateralMotionControl2 message with angle mode (curvature=0)."""
     if increment_timer:
-      self.safety.set_timer(self.cnt_lat_ctl * int(1e6 / self.LATERAL_FREQUENCY))
-      self.__class__.cnt_lat_ctl += 1
+      self.safety.set_timer(self.lat_ctl_frame * int(1e6 / self.LATERAL_FREQUENCY))
+      self.lat_ctl_frame += 1
     values = {
       "LatCtl_D2_Rq": 1 if enabled else 0,
       "LatCtlPathOffst_L_Actl": 0,             # path_offset = 0 in angle mode

@@ -2,7 +2,7 @@
 """Unit tests for Ford path-angle lateral control strategy."""
 import unittest
 from dataclasses import dataclass
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from opendbc.car.ford.lateral_angle import (
   LateralAngle, HumanTurnDetector, AngleLateralResult,

@@ -117,6 +117,17 @@ class LateralAngle:
       return -self.pinion_model.calc_curvature(math.radians(CS.out.steeringAngleDeg), CS.out.vEgoRaw, 0.)
     return -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
 
+  def get_curvature_factor(self, v_ego: float, kappa_cmd: float) -> float:
+    # Speed-interpolated gain: 1.0 at low speed, platform-specific at high speed
+    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, self.gain_low_curv]))
+    low_speed_factor = _FORD_LOW_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
+    high_speed_factor = _FORD_HIGH_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
+    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
+                                    [1.30 * low_speed_factor, self.gain_high_curv * high_speed_factor]))
+
+    # Curvature magnitude selects between low-curv and high-curv gain
+    return float(interp(abs(kappa_cmd), [0.0007, 0.001], [low_gain_interp, high_gain_interp]))
+
   def update(self, CC, CS, actuators) -> AngleLateralResult:
     """
     Compute path_angle from planner curvature.
@@ -157,15 +168,7 @@ class LateralAngle:
                              current_curvature - CarControllerParams.CURVATURE_ERROR,
                              current_curvature + CarControllerParams.CURVATURE_ERROR))
 
-    # Speed-interpolated gain: 1.0 at low speed, platform-specific at high speed
-    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, self.gain_low_curv]))
-    low_speed_factor = _FORD_LOW_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
-    high_speed_factor = _FORD_HIGH_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
-    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
-                                    [1.30 * low_speed_factor, self.gain_high_curv * high_speed_factor]))
-
-    # Curvature magnitude selects between low-curv and high-curv gain
-    curvature_factor = float(interp(abs(kappa_cmd), [0.0007, 0.001], [low_gain_interp, high_gain_interp]))
+    curvature_factor = self.get_curvature_factor(v_ego, kappa_cmd)
 
     # Core angle-mode formula
     path_angle = kappa_cmd * v_ego * curvature_factor

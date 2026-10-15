@@ -128,8 +128,12 @@ class CarController(CarControllerBase):
       if self.CP.flags & FordFlags.CANFD:
         # Panda must receive the mode transition before the first request using it,
         # including steering frames between the regular 33 Hz LKA updates.
+        # Pinion-mode safety checks must see this request's current intent,
+        # including active requests between the regular metadata slots.
+        sync_pinion_intent = (lat_active and self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+                              and bool(self.CP.flags & FordFlags.PINION_CURVATURE))
         if use_angle_mode and self.angle_mode_engaged and ((self.frame % CarControllerParams.LKA_STEP) == 0 or
-                                                         self.angle_mode_engaged != angle_mode_engaged_last):
+                                                         self.angle_mode_engaged != angle_mode_engaged_last or sync_pinion_intent):
           can_sends.append(fordcan.create_lka_msg(self.packer, self.CAN, self.angle_mode_engaged, -self.shadow_curvature))
           lka_msg_sent = True
         mode = 1 if lat_active else 0

@@ -59,6 +59,20 @@ class BudgetedTrackingPrototype(RampTrackingPrototype):
         self.rearm_count += 1
       self.quiet_rearmed = True
 
+  def recovery_rate(self, requested, span, signed, ratios):
+    fractional = super().recovery_rate(requested, span, signed, ratios)
+    sign = 1 if requested > 0 else -1
+    measured = max(0.0, sign * (self.response_history[-1][2] - self.response_history[0][2]) / (span * abs(requested)))
+    # Small request dips alone must not impersonate actuator catch-up. Keep
+    # predictive release for a sustained unwind (three declines totaling >5%).
+    sustained_unwind = all(b < a for a, b in zip(signed[-4:-1], signed[-3:], strict=True)) and signed[-1] < 0.95 * signed[-4]
+    recovery = fractional if sustained_unwind else min(fractional, measured)
+    if ratios[-1] + self.PREDICTION_S * recovery < 0.7 <= ratios[-1] + self.PREDICTION_S * fractional:
+      # Exceptions spend the existing episode budget, including subsequent
+      # steady terms. Ordinary tracking resets must never replenish it.
+      self.ramp_episode = True
+    return recovery
+
   def correction(self, v, requested, measured, feedforward, driver_pressed):
     now = self.context[0] if self.context is not None else None
     previous = self.last_time_ns

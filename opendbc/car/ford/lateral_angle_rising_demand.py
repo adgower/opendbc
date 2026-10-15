@@ -18,6 +18,10 @@ class RampTrackingPrototype(ReleaseTrackingPrototype):
     super().reset_tracking()
     self.admission_kind = "none"
 
+  def recovery_rate(self, requested, span, signed, ratios):
+    """Predict fractional recovery; budgeted strategies may constrain admission."""
+    return max(0.0, (ratios[-1] - ratios[0]) / span)
+
   def correction(self, v, requested, measured, feedforward, driver_pressed):
     ctx = self.context
     self.context = None
@@ -71,7 +75,7 @@ class RampTrackingPrototype(ReleaseTrackingPrototype):
       ratios = [m / k for _, k, m in self.response_history]
       # Release using fractional recovery. A proportional response to a rising
       # demand is not catching up just because absolute curvature is increasing.
-      recovery = max(0.0, (ratios[-1] - ratios[0]) / span)
+      recovery = self.recovery_rate(requested, span, signed, ratios)
       projected = ratios[-1] + self.PREDICTION_S * recovery
       if projected >= 0.7:
         self.hold_frames = 0

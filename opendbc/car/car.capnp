@@ -357,6 +357,23 @@ struct CarControl {
   angularVelocity @14 :List(Float32);
   currentCurvature @17 :Float32;  # From vehicle model
 
+  # Optional trial provenance: captured with this control, never a separate latest-topic join.
+  navigatorCalibration @19 :NavigatorCalibration;
+
+  struct NavigatorCalibration {
+    valid @0 :Bool;
+    sourceMonoTime @1 :UInt64;
+    stateMonoTime @2 :UInt64;
+    computedMonoTime @3 :UInt64;
+    targetSpeed @4 :Float32;
+    roll @5 :Float32;
+    steerRatio @6 :Float32;
+    stiffnessFactor @7 :Float32;
+    angleOffsetDeg @8 :Float32;
+    requestedCurvature @9 :Float32;
+    targetAngleDeg @10 :Float32;
+  }
+
   driverMonitoringEscalation @18 :Bool; # trigger the car's stock driver monitoring escalation
 
   cruiseControl @4 :CruiseControl;

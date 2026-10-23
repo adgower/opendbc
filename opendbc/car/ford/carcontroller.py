@@ -4,6 +4,8 @@ from opendbc.can import CANPacker
 from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, apply_hysteresis, structs
 from opendbc.car.ford import fordcan
 from opendbc.car.ford.lateral_angle import LateralAngle
+from opendbc.car.ford.longitudinal_handoff import Handoff
+from opendbc.car.ford.longitudinal_release import ReleaseGate
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -44,6 +46,10 @@ class CarController(CarControllerBase):
     self.accel = 0.0
     self.gas = 0.0
     self.brake_request = False
+    self.long_handoff = Handoff(0.5, 0.02)
+    self.release_gate = ReleaseGate()
+    self.last_release = None
+    self.last_handoff = None
     self.main_on_last = False
     self.lkas_enabled_last = False
     self.steer_alert_last = False
@@ -154,10 +160,12 @@ class CarController(CarControllerBase):
     ### longitudinal control ###
     # send acc msg at 50Hz
     if self.CP.openpilotLongitudinalControl and (self.frame % CarControllerParams.ACC_CONTROL_STEP) == 0:
-      accel = actuators.accel
-      gas = accel
+      navigator_longitudinal = self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+      accel_valid = math.isfinite(actuators.accel)
+      accel = (self.accel if CC.longActive else 0.0) if navigator_longitudinal and not accel_valid else actuators.accel
+      gas = CarControllerParams.INACTIVE_GAS if navigator_longitudinal and not accel_valid else accel
 
-      if CC.longActive:
+      if CC.longActive and (not navigator_longitudinal or accel_valid):
         # Compensate for engine creep at low speed.
         # Either the ABS does not account for engine creep, or the correction is very slow
         # TODO: verify this applies to EV/hybrid
@@ -176,14 +184,25 @@ class CarController(CarControllerBase):
 
       # PCM applies pitch compensation to gas/accel, but we need to compensate for the brake/pre-charge bits
       accel_due_to_pitch = 0.0
-      if len(CC.orientationNED) == 3:
+      pitch_valid = len(CC.orientationNED) == 3 and all(math.isfinite(x) for x in CC.orientationNED)
+      if len(CC.orientationNED) == 3 and (not navigator_longitudinal or pitch_valid):
         accel_due_to_pitch = math.sin(CC.orientationNED[1]) * ACCELERATION_DUE_TO_GRAVITY
 
+      brake_request_previous = self.brake_request
       accel_pitch_compensated = accel + accel_due_to_pitch
       if accel_pitch_compensated > 0.3 or not CC.longActive:
         self.brake_request = False
       elif accel_pitch_compensated < 0.0:
         self.brake_request = True
+
+      if navigator_longitudinal:
+        self.last_release = self.release_gate.update(now_nanos / 1e9, CC.longActive, self.brake_request,
+                                                     brake_request_previous, actuators.accel, accel_pitch_compensated,
+                                                     str(CC.actuators.longControlState), pitch_valid)
+        self.brake_request = self.last_release.brake
+        self.last_handoff = self.long_handoff.update(now_nanos / 1e9, CC.longActive, self.brake_request, gas,
+                                                    pitch_valid, CC.actuators.longControlState == LongCtrlState.stopping)
+        gas = self.last_handoff.gas
 
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed

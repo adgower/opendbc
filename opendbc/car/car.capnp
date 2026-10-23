@@ -359,6 +359,31 @@ struct CarControl {
 
   # Optional trial provenance: captured with this control, never a separate latest-topic join.
   navigatorCalibration @19 :NavigatorCalibration;
+  navigatorLongitudinal @20 :NavigatorLongitudinal;
+
+  struct NavigatorLongitudinal {
+    enabled @0 :Bool;
+    epoch @1 :UInt64;  # controlsd process/engagement identity
+    sequence @2 :UInt64;
+    producerMonoTime @3 :UInt64;
+    poseMonoTime @4 :UInt64;  # sensor sample time, not repeated control publication time
+    poseValid @5 :Bool;
+    referenceValid @6 :Bool;
+  }
+
+  struct NavigatorLongitudinalFeedback {
+    producerMonoTime @0 :UInt64;
+    epoch @1 :UInt64;
+    sequence @2 :UInt64;
+    requested @3 :Float32;
+    gas @4 :Float32;
+    brake @5 :Bool;
+    limited @6 :Bool;
+    valid @7 :Bool;
+    fault @8 :Bool;
+    reason @9 :Text;
+    gradeOffset @10 :Float32;
+  }
 
   struct NavigatorCalibration {
     valid @0 :Bool;
@@ -393,6 +418,7 @@ struct CarControl {
     gas @0: Float32;   # [0.0, 1.0]
     brake @1: Float32; # [0.0, 1.0]
     torqueOutputCan @8: Float32;   # value sent over can to the car
+    navigatorLongitudinal @9 :NavigatorLongitudinalFeedback;
     speed @6: Float32;  # m/s
 
     enum LongControlState @0xe40f3a917d908282{

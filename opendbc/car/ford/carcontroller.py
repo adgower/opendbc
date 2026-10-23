@@ -6,6 +6,7 @@ from opendbc.car.ford import fordcan
 from opendbc.car.ford.lateral_angle import LateralAngle
 from opendbc.car.ford.longitudinal_handoff import Handoff
 from opendbc.car.ford.longitudinal_release import ReleaseGate
+from opendbc.car.ford.longitudinal_coordination import GradeLease, ReleaseBarrier, Feedback
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -47,6 +48,17 @@ class CarController(CarControllerBase):
     self.gas = 0.0
     self.brake_request = False
     self.long_handoff = Handoff(0.5, 0.02)
+    self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
+    self.grade_map = GradeLease(True)
+    self.release_barrier = ReleaseBarrier(True)
+    self.last_grade = None
+    self.last_observer = None
+    self.last_feedback = None
+    self.coordination_fault = None
+    self.coordination_epoch = None
+    self.coordination_producer_ns = 0
+    self.coordination_sequence = 0
+    self.coordination_control_valid = False
     self.release_gate = ReleaseGate()
     self.last_release = None
     self.last_handoff = None
@@ -188,6 +200,43 @@ class CarController(CarControllerBase):
       if len(CC.orientationNED) == 3 and (not navigator_longitudinal or pitch_valid):
         accel_due_to_pitch = math.sin(CC.orientationNED[1]) * ACCELERATION_DUE_TO_GRAVITY
 
+      coordination_now = now_nanos / 1e9
+      request = CC.navigatorLongitudinal
+      coordinated = navigator_longitudinal and self.longitudinal_coordination_enabled
+      if coordinated:
+        # Faults survive longActive dropping from our own fault or a pedal
+        # override. Only a disabled owner followed by a new engagement rearms.
+        if not CC.enabled:
+          self.coordination_fault = None
+          self.coordination_epoch = None
+          self.coordination_producer_ns = 0
+          self.release_barrier.reset()
+          self.grade_map = GradeLease(True)
+        elif self.coordination_epoch is None:
+          self.coordination_epoch = request.epoch
+          self.coordination_sequence = 0
+        elif self.coordination_epoch != request.epoch:
+          self.coordination_fault = 'owner_epoch_changed_while_enabled'
+        valid_request = (request.enabled and request.epoch > 0 and request.sequence > 0
+                         and request.sequence >= self.coordination_sequence
+                         and request.producerMonoTime >= self.coordination_producer_ns
+                         and 0 <= now_nanos - request.producerMonoTime <= 100_000_000
+                         and self.coordination_control_valid)
+        if CC.enabled and not valid_request:
+          self.coordination_fault = 'invalid_control_context'
+        self.coordination_sequence = request.sequence
+        self.coordination_producer_ns = request.producerMonoTime
+        installed_gravity = accel_due_to_pitch
+        self.last_grade = self.grade_map.update(coordination_now, accel_due_to_pitch,
+          request.poseMonoTime / 1e9, request.poseValid and pitch_valid,
+          CC.longActive, CS.out.vEgo, str(CC.actuators.longControlState), request.referenceValid)
+        accel_due_to_pitch = self.last_grade.gravity
+        if actuators.accel < CarControllerParams.MIN_GAS:
+          accel_due_to_pitch = min(installed_gravity, accel_due_to_pitch)
+        if (CC.longActive and CS.out.vEgo >= 3. and CC.actuators.longControlState == LongCtrlState.pid
+            and (self.last_grade.reason == 'invalid_pose_disengage' or not accel_valid)):
+          self.coordination_fault = 'invalid_pose_or_accel'
+
       brake_request_previous = self.brake_request
       accel_pitch_compensated = accel + accel_due_to_pitch
       if accel_pitch_compensated > 0.3 or not CC.longActive:
@@ -200,10 +249,33 @@ class CarController(CarControllerBase):
                                                      brake_request_previous, actuators.accel, accel_pitch_compensated,
                                                      str(CC.actuators.longControlState), pitch_valid)
         self.brake_request = self.last_release.brake
+        if coordinated:
+          torque = getattr(CS, 'longitudinal_brake_torque', None)
+          if torque is not None and not CS.out.canValid:
+            torque = None
+          self.last_observer = self.release_barrier.update(coordination_now, CC.longActive,
+            self.brake_request, CS.out.vEgo, str(CC.actuators.longControlState), torque, owner_active=CC.enabled)
+          if self.last_observer.fault:
+            self.coordination_fault = self.last_observer.reason
+          if self.coordination_fault:
+            CC = CC.as_builder()
+            CC.longActive = False
+            CC.actuators.accel = 0.
+            CC.actuators.longControlState = LongCtrlState.off
+            self.brake_request = False
+            accel = 0.
+            gas = CarControllerParams.INACTIVE_GAS
+          elif not self.last_observer.allow:
+            gas = CarControllerParams.INACTIVE_GAS
         self.last_handoff = self.long_handoff.update(now_nanos / 1e9, CC.longActive, self.brake_request, gas,
                                                     pitch_valid, CC.actuators.longControlState == LongCtrlState.stopping)
         gas = self.last_handoff.gas
 
+      if coordinated:
+        self.last_feedback = Feedback(coordination_now, request.epoch, request.sequence,
+          float(actuators.accel) if accel_valid else 0., float(gas), bool(self.brake_request),
+          bool(not self.brake_request and (not self.last_observer.allow or self.last_handoff.state in ('qualify', 'resume'))),
+          bool(CC.longActive), bool(self.coordination_fault))
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed
       can_sends.append(fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX))
@@ -237,6 +309,21 @@ class CarController(CarControllerBase):
     new_actuators.curvature = self.apply_curvature_last
     new_actuators.accel = self.accel
     new_actuators.gas = self.gas
+
+    if self.longitudinal_coordination_enabled and self.last_feedback is not None:
+      f = self.last_feedback
+      output = new_actuators.navigatorLongitudinal
+      output.producerMonoTime = int(round(f.t * 1e9))
+      output.epoch = f.epoch
+      output.sequence = f.sequence
+      output.requested = f.requested
+      output.gas = f.gas
+      output.brake = f.brake
+      output.limited = f.limited
+      output.valid = f.valid
+      output.fault = f.fault
+      output.reason = self.coordination_fault or self.last_observer.reason
+      output.gradeOffset = self.last_grade.offset
 
     self.frame += 1
     return new_actuators, can_sends

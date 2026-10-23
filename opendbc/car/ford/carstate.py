@@ -2,6 +2,7 @@ from opendbc.can import CANDefine, CANParser
 from opendbc.car import Bus, create_button_events, structs
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.ford.fordcan import CanBus
+from opendbc.car.ford.longitudinal_coordination import Torque
 from opendbc.car.ford.values import DBC, CarControllerParams, FordFlags
 from opendbc.car.interfaces import CarStateBase
 
@@ -17,14 +18,28 @@ class CarState(CarStateBase):
     if CP.transmissionType == TransmissionType.automatic:
       self.shifter_values = can_define.dv["PowertrainData_10"]["TrnRng_D_Rq"]
 
+    self.longitudinal_coordination_enabled = False
+    self.longitudinal_brake_torque = None
     self.distance_button = 0
     self.lc_button = 0
+
+  def enable_longitudinal_coordination(self, cp):
+    # Register this optional RX message before the first parse, without adding
+    # a new CAN validity requirement to stock/OEM operation.
+    _ = cp.vl['BrakeSnData_4']
+    self.longitudinal_coordination_enabled = True
 
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
     cp_cam = can_parsers[Bus.cam]
 
     ret = structs.CarState()
+    # Preserve the source CAN sample time: repeating a cached value is not a
+    # second brake-clear observation. Fault/Unknown DBC values cannot qualify.
+    if self.longitudinal_coordination_enabled:
+      torque = cp.vl['BrakeSnData_4']['BrkTot_Tq_Actl']
+      sample_ns = cp.ts_nanos['BrakeSnData_4']['BrkTot_Tq_Actl']
+      self.longitudinal_brake_torque = Torque(sample_ns / 1e9, torque, sample_ns > 0 and 0 <= torque <= 32756.)
 
     # Occasionally on startup, the ABS module recalibrates the steering pinion offset, so we need to block engagement
     # The vehicle usually recovers out of this state within a minute of normal driving

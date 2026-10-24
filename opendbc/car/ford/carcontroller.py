@@ -6,7 +6,8 @@ from opendbc.car.ford import fordcan
 from opendbc.car.ford.lateral_angle import LateralAngle
 from opendbc.car.ford.longitudinal_handoff import Handoff
 from opendbc.car.ford.longitudinal_release import ReleaseGate
-from opendbc.car.ford.longitudinal_coordination import GradeLease, ReleaseBarrier, Feedback
+from opendbc.car.ford.longitudinal_admission import BrakeAdmission, ObservedClearBarrier
+from opendbc.car.ford.longitudinal_coordination import GradeLease, Feedback
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -50,7 +51,9 @@ class CarController(CarControllerBase):
     self.long_handoff = Handoff(0.5, 0.02)
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
     self.grade_map = GradeLease(True)
-    self.release_barrier = ReleaseBarrier(True)
+    self.release_barrier = ObservedClearBarrier(True)
+    self.brake_admission = BrakeAdmission()
+    self.last_admission = None
     self.last_grade = None
     self.last_observer = None
     self.last_feedback = None
@@ -245,6 +248,12 @@ class CarController(CarControllerBase):
         self.brake_request = True
 
       if navigator_longitudinal:
+        self.last_admission = self.brake_admission.update(coordination_now,
+          coordinated and not self.coordination_fault and CC.longActive and CS.out.vEgo >= 3.0
+          and CS.out.canValid and request.poseValid and str(CC.actuators.longControlState) == 'pid' and pitch_valid and request.referenceValid,
+          self.brake_request, brake_request_previous, actuators.accel, accel_pitch_compensated,
+          not self.release_barrier.needs, getattr(CS, 'longitudinal_brake_torque', None))
+        self.brake_request = self.last_admission.brake
         self.last_release = self.release_gate.update(now_nanos / 1e9, CC.longActive, self.brake_request,
                                                      brake_request_previous, actuators.accel, accel_pitch_compensated,
                                                      str(CC.actuators.longControlState), pitch_valid)
@@ -267,6 +276,8 @@ class CarController(CarControllerBase):
             gas = CarControllerParams.INACTIVE_GAS
           elif not self.last_observer.allow:
             gas = CarControllerParams.INACTIVE_GAS
+        if coordinated and self.last_admission.coast:
+          gas = CarControllerParams.INACTIVE_GAS
         self.last_handoff = self.long_handoff.update(now_nanos / 1e9, CC.longActive, self.brake_request, gas,
                                                     pitch_valid, CC.actuators.longControlState == LongCtrlState.stopping)
         gas = self.last_handoff.gas
@@ -274,7 +285,7 @@ class CarController(CarControllerBase):
       if coordinated:
         self.last_feedback = Feedback(coordination_now, request.epoch, request.sequence,
           float(actuators.accel) if accel_valid else 0., float(gas), bool(self.brake_request),
-          bool(not self.brake_request and (not self.last_observer.allow or self.last_handoff.state in ('qualify', 'resume'))),
+          bool(not self.brake_request and (not self.last_observer.allow or self.last_admission.coast or self.last_handoff.state in ('qualify', 'resume'))),
           bool(CC.longActive), bool(self.coordination_fault))
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed
@@ -322,7 +333,7 @@ class CarController(CarControllerBase):
       output.limited = f.limited
       output.valid = f.valid
       output.fault = f.fault
-      output.reason = self.coordination_fault or self.last_observer.reason
+      output.reason = self.coordination_fault or (self.last_admission.reason if self.last_admission.coast else self.last_observer.reason)
       output.gradeOffset = self.last_grade.offset
 
     self.frame += 1

@@ -65,10 +65,11 @@ class Scene:
 def test_single_near_zero_grade_crossing_coasts_instead_of_latching_actual_brake():
   s = Scene()
   s.warm()
+  before = s.c.last_feedback.gas
   out, _ = s.step(0.30177226662635803, -0.046179983764886856)
   assert not out.navigatorLongitudinal.brake
-  assert out.navigatorLongitudinal.gas == -5.0
-  assert out.navigatorLongitudinal.limited
+  assert out.navigatorLongitudinal.gas >= before
+  assert s.c.long_handoff.last_valid is not None
   for _ in range(7):
     out, _ = s.step(0.30191993713378906, -0.04455951973795891)
     assert not out.navigatorLongitudinal.brake and not out.navigatorLongitudinal.fault
@@ -90,23 +91,35 @@ def test_sustained_mild_negative_intent_is_not_dropped():
   s = Scene()
   s.warm()
   pitch = math.asin((-0.02 - 0.3 - GRADE_OFFSET) / 9.81)
-  out, _ = s.step(0.3, pitch)
-  assert not out.navigatorLongitudinal.brake
-  out, _ = s.step(0.3, pitch)
-  assert not out.navigatorLongitudinal.brake
-  out, _ = s.step(0.3, pitch)
-  assert out.navigatorLongitudinal.brake
+  first = None
+  admitted = None
+  for _ in range(30):
+    out, _ = s.step(0.3, pitch)
+    if first is None:
+      first = s.now
+    assert not out.navigatorLongitudinal.fault
+    if out.navigatorLongitudinal.brake:
+      admitted = s.now
+      break
+  assert admitted is not None
+  assert 0.28 <= admitted - first <= 0.340000001
 
 
 def test_alternating_nearzero_demand_has_bounded_negative_exposure():
   s = Scene()
   s.warm()
-  braked = False
-  for i in range(12):
+  debt = 0.0
+  for i in range(100):
     net = -0.04 if i % 2 == 0 else 0.001
+    debt = max(0.0, debt - net * 0.02)
     out, _ = s.step(0.3, math.asin((net - 0.3 - GRADE_OFFSET) / 9.81))
-    braked |= out.navigatorLongitudinal.brake
-  assert braked
+    assert not out.navigatorLongitudinal.fault
+    if out.navigatorLongitudinal.brake:
+      assert i >= 12  # Brief alternating residuals no longer restart braking.
+      assert s.c.brake_admission.budget - 1e-6 <= debt < s.c.brake_admission.budget + 0.002
+      break
+  else:
+    pytest.fail("persistent signed residual never admitted")
 
 
 @pytest.mark.parametrize("dt", [0.041, 0.06, 0.099])

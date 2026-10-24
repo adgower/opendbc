@@ -6,7 +6,8 @@ from opendbc.car.ford import fordcan
 from opendbc.car.ford.lateral_angle import LateralAngle
 from opendbc.car.ford.longitudinal_handoff import Handoff
 from opendbc.car.ford.longitudinal_release import ReleaseGate
-from opendbc.car.ford.longitudinal_admission import BrakeAdmission, ObservedClearBarrier
+from opendbc.car.ford.longitudinal_admission import BrakeAdmission
+from opendbc.car.ford.longitudinal_restart import RestartClearance
 from opendbc.car.ford.longitudinal_coordination import GradeLease, Feedback
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
@@ -51,7 +52,7 @@ class CarController(CarControllerBase):
     self.long_handoff = Handoff(0.5, 0.02)
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
     self.grade_map = GradeLease(True)
-    self.release_barrier = ObservedClearBarrier(True)
+    self.release_barrier = RestartClearance(True)
     self.brake_admission = BrakeAdmission()
     self.last_admission = None
     self.last_grade = None

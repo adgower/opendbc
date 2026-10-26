@@ -39,6 +39,48 @@ class Release:
   reason: str = "baseline"
 
 
+class BrakeReleaseProgress:
+  """Bound extra fault-wait time using received torque, never inferred clearance."""
+
+  def __init__(self):
+    self.episode = None
+    self.samples = []
+
+  def expired(self, now, started, torque):
+    if started != self.episode:
+      self.episode = started
+      self.samples = []
+    if torque.t >= started and (not self.samples or torque.t != self.samples[-1][0]):
+      self.samples.append((torque.t, torque.value))
+
+    elapsed = now - started
+    if elapsed + 1e-9 < 1.0:
+      return False
+    if elapsed + 1e-9 >= 2.0:
+      return True
+
+    initial = [value for timestamp, value in self.samples if 0 <= timestamp - started <= 0.25]
+    recent = [(timestamp, value) for timestamp, value in self.samples if now - 0.25 <= timestamp <= now]
+    if not initial or len(recent) < 3 or recent[-1][0] - recent[0][0] < 0.15 - 1e-9:
+      return True
+    if now - torque.t > 0.05 or any(b[0] - a[0] > 0.050000001 for a, b in zip(recent, recent[1:], strict=False)):
+      return True
+
+    peak = max(initial)
+    # Require substantial overall release and continuing recent progress.
+    if peak < 40.0 or torque.value > 0.6 * peak:
+      return True
+    if recent[0][1] - recent[-1][1] < max(8.0, 0.04 * peak):
+      return True
+
+    floor = recent[0][1]
+    for _, value in recent:
+      if value - floor > max(8.0, 0.02 * peak):
+        return True
+      floor = min(floor, value)
+    return False
+
+
 class ReleaseBarrier:
   def __init__(self, enabled=False):
     self.enabled = enabled
@@ -51,6 +93,7 @@ class ReleaseBarrier:
     self.last_sample = None
     self.last = None
     self.fault = None
+    self.release_progress = BrakeReleaseProgress()
 
   def fail(self, reason):
     self.fault = reason
@@ -120,9 +163,9 @@ class ReleaseBarrier:
       self.started = None
       self.clear = []
       return Release(True, False, "observed_clear")
-    # One real Alpha release retains60–90Nm for~0.7s. Deadline only requests
-    # disengagement; elapsed time never grants propulsion without measured clear.
-    if now - self.started + 1e-9 >= 1.0:
+    # A progressing measured release may outlast the nominal one-second deadline.
+    # The bounded wait never grants propulsion without the original measured clear.
+    if self.release_progress.expired(now, self.started, torque):
       return self.fail("release_timeout_disengage")
     return Release(False, False, "wait_observed_clear")
 

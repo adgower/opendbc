@@ -31,8 +31,8 @@ def call(f=None, **change):
   return policy(**d)
 
 
-def test_recorded_low_speed_ramp_positive_error_does_not_accumulate():
-  assert call()
+def test_unqualified_low_speed_ramp_does_not_broadly_freeze_integral():
+  assert not call()
 
 
 @pytest.mark.parametrize(

@@ -9,6 +9,7 @@ from opendbc.car.ford.longitudinal_release import ReleaseGate
 from opendbc.car.ford.longitudinal_coast import BoundedCoastAdmission
 from opendbc.car.ford.longitudinal_restart import RestartClearance
 from opendbc.car.ford.longitudinal_coordination import GradeLease, Feedback
+from opendbc.car.ford.longitudinal_precharge import BoundedPrechargeAllocator, PRECHARGE_PROTOCOL_VERSION, allocator_request_valid
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -49,6 +50,10 @@ class CarController(CarControllerBase):
     self.accel = 0.0
     self.gas = 0.0
     self.brake_request = False
+    self.reference_brake = False
+    self.precharge_request = False
+    self.precharge_allocator = BoundedPrechargeAllocator()
+    self.last_allocation = None
     self.long_handoff = Handoff(0.5, 0.02)
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
     self.grade_map = GradeLease(True)
@@ -242,6 +247,9 @@ class CarController(CarControllerBase):
           self.coordination_fault = 'invalid_pose_or_accel'
 
       brake_request_previous = self.brake_request
+      if navigator_longitudinal and coordinated:
+        brake_request_previous = self.reference_brake
+        self.brake_request = self.reference_brake
       accel_pitch_compensated = accel + accel_due_to_pitch
       if accel_pitch_compensated > 0.3 or not CC.longActive:
         self.brake_request = False
@@ -259,12 +267,28 @@ class CarController(CarControllerBase):
                                                      brake_request_previous, actuators.accel, accel_pitch_compensated,
                                                      str(CC.actuators.longControlState), pitch_valid)
         self.brake_request = self.last_release.brake
+        self.reference_brake = self.brake_request
+        if coordinated:
+          eligible_allocator = (not self.coordination_fault and CC.longActive and CS.out.vEgo >= 3.
+            and CS.out.canValid and request.poseValid and pitch_valid and request.referenceValid
+            and str(CC.actuators.longControlState) == 'pid' and allocator_request_valid(request, now_nanos))
+          self.last_allocation = self.precharge_allocator.update(coordination_now, CC.enabled, CC.longActive,
+            eligible_allocator, self.brake_request, float(actuators.accel), accel_pitch_compensated,
+            float(request.targetAcceleration),
+            measured_clear=(not self.release_barrier.needs and self.last_observer is not None and self.last_observer.allow
+              and getattr(CS, 'longitudinal_brake_torque', None) is not None
+              and CS.longitudinal_brake_torque.valid
+              and all(math.isfinite(v) for v in [CS.longitudinal_brake_torque.t, CS.longitudinal_brake_torque.value])
+              and 0 <= coordination_now - CS.longitudinal_brake_torque.t <= .1
+              and 0 <= CS.longitudinal_brake_torque.value <= 4.))
+          self.brake_request = self.last_allocation.brake
+          self.precharge_request = self.last_allocation.precharge
         if coordinated:
           torque = getattr(CS, 'longitudinal_brake_torque', None)
           if torque is not None and not CS.out.canValid:
             torque = None
           self.last_observer = self.release_barrier.update(coordination_now, CC.longActive,
-            self.brake_request, CS.out.vEgo, str(CC.actuators.longControlState), torque, owner_active=CC.enabled)
+            bool(self.brake_request or self.precharge_request), CS.out.vEgo, str(CC.actuators.longControlState), torque, owner_active=CC.enabled)
           if self.last_observer.fault:
             self.coordination_fault = self.last_observer.reason
           if self.coordination_fault:
@@ -273,24 +297,46 @@ class CarController(CarControllerBase):
             CC.actuators.accel = 0.
             CC.actuators.longControlState = LongCtrlState.off
             self.brake_request = False
+            self.precharge_request = False
             accel = 0.
             gas = CarControllerParams.INACTIVE_GAS
           elif not self.last_observer.allow:
             gas = CarControllerParams.INACTIVE_GAS
         if coordinated and self.last_admission.coast:
           gas = CarControllerParams.INACTIVE_GAS
-        self.last_handoff = self.long_handoff.update(now_nanos / 1e9, CC.longActive, self.brake_request, gas,
+        self.last_handoff = self.long_handoff.update(now_nanos / 1e9, CC.longActive, bool(self.brake_request or self.precharge_request), gas,
                                                     pitch_valid, CC.actuators.longControlState == LongCtrlState.stopping)
         gas = self.last_handoff.gas
 
       if coordinated:
+        if self.coordination_fault:
+          allocator_phase = 'fault'
+        elif not CC.longActive:
+          allocator_phase = 'inactive'
+        elif self.brake_request:
+          allocator_phase = 'brake'
+        elif self.precharge_request:
+          allocator_phase = 'precharge'
+        elif not self.last_observer.allow:
+          allocator_phase = 'release'
+        elif self.last_handoff.state in ('qualify', 'resume'):
+          allocator_phase = 'engineRamp'
+        else:
+          allocator_phase = 'drive'
+        precharge_only = allocator_phase == 'precharge'
         self.last_feedback = Feedback(coordination_now, request.epoch, request.sequence,
           float(actuators.accel) if accel_valid else 0., float(gas), bool(self.brake_request),
-          bool(not self.brake_request and (not self.last_observer.allow or self.last_admission.coast or self.last_handoff.state in ('qualify', 'resume'))),
-          bool(CC.longActive), bool(self.coordination_fault))
+          bool(not self.brake_request and (self.precharge_request or not self.last_observer.allow or self.last_admission.coast
+                                          or self.last_handoff.state in ('qualify', 'resume'))),
+          bool(CC.longActive), bool(self.coordination_fault),
+          allocator_version=PRECHARGE_PROTOCOL_VERSION, precharge=bool(self.brake_request or self.precharge_request),
+          reference_brake=bool(self.reference_brake), allocator_phase=allocator_phase,
+          precharge_age=(coordination_now - self.precharge_allocator.start) if precharge_only else 0.,
+          budget_remaining=(self.precharge_allocator.budget - self.precharge_allocator.area) if precharge_only else 0.)
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed
-      can_sends.append(fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX))
+      can_sends.append(fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX,
+                                               precharge_request=self.precharge_request))
 
       self.accel = accel
       self.gas = gas
@@ -336,6 +382,12 @@ class CarController(CarControllerBase):
       output.fault = f.fault
       output.reason = self.coordination_fault or (self.last_admission.reason if self.last_admission.coast else self.last_observer.reason)
       output.gradeOffset = self.last_grade.offset
+      output.allocatorVersion = f.allocator_version
+      output.precharge = f.precharge
+      output.referenceBrake = f.reference_brake
+      output.allocatorPhase = f.allocator_phase
+      output.prechargeAge = f.precharge_age
+      output.budgetRemaining = f.budget_remaining
 
     self.frame += 1
     return new_actuators, can_sends

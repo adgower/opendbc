@@ -3,6 +3,7 @@
 from dataclasses import dataclass, asdict
 import json
 import math
+from opendbc.car.ford.longitudinal_precharge import PRECHARGE_PROTOCOL_VERSION
 
 
 @dataclass(frozen=True)
@@ -23,6 +24,12 @@ class Feedback:
   limited: bool
   valid: bool = True
   fault: bool = False
+  allocator_version: int = 0
+  precharge: bool = False
+  reference_brake: bool = False
+  allocator_phase: str = 'inactive'
+  precharge_age: float = 0.
+  budget_remaining: float = 0.
 
   def encode(self):
     return json.dumps(asdict(self), allow_nan=False).encode()
@@ -170,7 +177,7 @@ class ReleaseBarrier:
     return Release(False, False, "wait_observed_clear")
 
 
-def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=False):
+def _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=False):
   if not enabled or feedback is None:
     return False
   f = feedback
@@ -191,6 +198,36 @@ def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, f
     and f.requested > 0.02
     and wanted > max(f.gas, 0.0) + 0.011
   )
+
+
+def allocator_feedback_valid(f):
+  if getattr(f, 'allocator_version', 0) != PRECHARGE_PROTOCOL_VERSION or getattr(f, 'allocator_phase', '') not in (
+    'inactive', 'brake', 'precharge', 'release', 'engineRamp', 'drive', 'fault',
+  ):
+    return False
+  try:
+    finite_budget = all(math.isfinite(v) for v in [f.precharge_age, f.budget_remaining])
+  except (TypeError, ValueError):
+    return False
+  if not finite_budget:
+    return False
+  if f.precharge and not f.brake:
+    return bool(f.allocator_phase == 'precharge' and f.reference_brake and f.limited and f.gas == -5.
+                and 0 <= f.precharge_age < .300000001 and 0 < f.budget_remaining <= .01)
+  return f.allocator_phase != 'precharge'
+
+
+def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=False):
+  f = feedback
+  valid = (enabled and f is not None
+           and all(math.isfinite(v) for v in [now, error, target, wanted, speed, f.t, f.requested, f.gas])
+           and 0 <= now - f.t <= .100000001 and f.epoch == epoch and 0 < f.sequence <= sequence
+           and f.valid and not f.fault and phase == 'pid' and speed >= 3)
+  # Bounded precharge is signed brake control. Keep both signs of PID error,
+  # as with nominal actual braking; the selected brake bit stays truthful.
+  if valid and allocator_feedback_valid(f) and f.precharge and not f.brake:
+    return False
+  return _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=enabled)
 
 
 # OEM-only fit: 15 windows / four moving routes, equal route weighting.
@@ -239,8 +276,14 @@ class GradeLease:
 
 
 def feedback_from_wire(f):
+  phase = getattr(f, 'allocatorPhase', 'inactive')
+  phase_raw = getattr(phase, 'raw', None)
+  phases = ('inactive', 'brake', 'precharge', 'release', 'engineRamp', 'drive', 'fault')
+  phase_name = (phases[phase_raw] if 0 <= phase_raw < len(phases) else 'unknown') if phase_raw is not None else str(phase)
   return Feedback(
-    f.producerMonoTime / 1e9, int(f.epoch), int(f.sequence), float(f.requested), float(f.gas), bool(f.brake), bool(f.limited), bool(f.valid), bool(f.fault)
+    f.producerMonoTime / 1e9, int(f.epoch), int(f.sequence), float(f.requested), float(f.gas), bool(f.brake), bool(f.limited), bool(f.valid), bool(f.fault),
+    int(getattr(f, 'allocatorVersion', 0)), bool(getattr(f, 'precharge', False)), bool(getattr(f, 'referenceBrake', False)),
+    phase_name, float(getattr(f, 'prechargeAge', 0.)), float(getattr(f, 'budgetRemaining', 0.)),
   )
 
 

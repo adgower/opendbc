@@ -369,6 +369,10 @@ struct CarControl {
     poseMonoTime @4 :UInt64;  # sensor sample time, not repeated control publication time
     poseValid @5 :Bool;
     referenceValid @6 :Bool;
+    allocatorVersion @7 :UInt16;  # zero/unknown selects nominal brake behavior
+    targetAcceleration @8 :Float64;  # exact planner target consumed by this control
+    targetMonoTime @9 :UInt64;
+    targetValid @10 :Bool;
   }
 
   struct NavigatorLongitudinalFeedback {
@@ -383,6 +387,22 @@ struct CarControl {
     fault @8 :Bool;
     reason @9 :Text;
     gradeOffset @10 :Float32;
+    allocatorVersion @11 :UInt16;
+    precharge @12 :Bool;  # selected request, independent of actual-deceleration bit
+    referenceBrake @13 :Bool;  # nominal brake demand before bounded allocation
+    allocatorPhase @14 :AllocatorPhase;
+    prechargeAge @15 :Float64;  # episode age at producerMonoTime
+    budgetRemaining @16 :Float64;
+
+    enum AllocatorPhase {
+      inactive @0;
+      brake @1;
+      precharge @2;
+      release @3;
+      engineRamp @4;
+      drive @5;
+      fault @6;
+    }
   }
 
   struct NavigatorCalibration {

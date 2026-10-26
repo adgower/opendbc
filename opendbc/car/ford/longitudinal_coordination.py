@@ -227,7 +227,18 @@ def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, f
   # as with nominal actual braking; the selected brake bit stays truthful.
   if valid and allocator_feedback_valid(f) and f.precharge and not f.brake:
     return False
-  return _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=enabled)
+  nominal = _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=enabled)
+  if nominal or not enabled or f is None or not 0 < speed < 3.0 or phase != "pid":
+    return nominal
+  # The same propulsion ramp operates below the moving-release threshold.
+  # Hold only positive unattainable demand; signed recovery and brake control
+  # retain their existing behavior. This does not grant propulsion permission.
+  finite = all(math.isfinite(x) for x in [now, error, target, wanted, speed, f.t, f.requested, f.gas])
+  return bool(finite and 0 <= now - f.t <= .100000001 and f.epoch == epoch and 0 < f.sequence <= sequence
+              and f.valid and not f.fault and not f.brake and not f.precharge and not f.reference_brake
+              and f.limited and f.allocator_phase == "engineRamp" and allocator_feedback_valid(f)
+              and error > 0 and target >= 0 and wanted > .02 and f.requested > .02
+              and f.gas >= 0 and wanted > f.gas + .011)
 
 
 # OEM-only fit: 15 windows / four moving routes, equal route weighting.

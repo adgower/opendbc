@@ -1,3 +1,4 @@
+from opendbc.car.ford.longitudinal_precharge import PRECHARGE_PROTOCOL_VERSION
 from types import SimpleNamespace as NS
 from dataclasses import replace
 import math
@@ -26,7 +27,8 @@ def step(
   cs = NS(vEgo=speed, canValid=True, gasPressed=False, brakePressed=False, standstill=stopped, cruiseState=NS(standstill=False))
   for k, v in (cskw or {}).items():
     setattr(cs, k, v)
-  fb = Feedback(t - 0.005, 1, 1, 0.9, 0.2, False, True, True, False, allocator_version=1, precharge=False, reference_brake=False, allocator_phase="engineRamp")
+  fb = Feedback(t - 0.005, 1, 1, 0.9, 0.2, False, True, True, False, allocator_version=PRECHARGE_PROTOCOL_VERSION, precharge=False,
+               reference_brake=False, allocator_phase="engineRamp")
   fb = replace(fb, **(fbkw or {}))
   g.observe(active, cs, target, should_stop, fb, t, epoch, sequence, True)
   g.growth_cost = growth

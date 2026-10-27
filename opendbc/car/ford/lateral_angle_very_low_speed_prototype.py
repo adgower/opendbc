@@ -24,3 +24,9 @@ class VeryLowSpeedGainPrototype(LowSpeedGainPrototype):
       return current
     weight = 1. - smoothstep((v_ego - FADE_START_MPS) / (FADE_END_MPS - FADE_START_MPS))
     return current * (1. + EXTRA_LOW_SPEED_GAIN * weight)
+
+
+def create_tracking_trial(CP, *, enabled=False):
+  """Construct the complete opt-in observer graph with temporal admission."""
+  from opendbc.car.ford.lateral_angle_midrange_admission import MidrangeAdmission
+  return MidrangeAdmission(CP, enabled=enabled)

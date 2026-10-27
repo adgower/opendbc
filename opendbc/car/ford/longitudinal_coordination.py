@@ -200,8 +200,8 @@ def _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, ph
   )
 
 
-def allocator_feedback_valid(f):
-  if getattr(f, 'allocator_version', 0) != PRECHARGE_PROTOCOL_VERSION or getattr(f, 'allocator_phase', '') not in (
+def _allocator_feedback_valid(f, version):
+  if getattr(f, 'allocator_version', 0) != version or getattr(f, 'allocator_phase', '') not in (
     'inactive', 'brake', 'precharge', 'release', 'engineRamp', 'drive', 'fault',
   ):
     return False
@@ -217,15 +217,29 @@ def allocator_feedback_valid(f):
   return f.allocator_phase != 'precharge'
 
 
+def coast_marker(f):
+  return bool(getattr(f, 'allocator_phase', '') == 'release' and f.reference_brake and not f.brake and not f.precharge)
+
+
+def allocator_feedback_valid(f):
+  if getattr(f, 'allocator_version', 0) != PRECHARGE_PROTOCOL_VERSION:
+    return False
+  if coast_marker(f):
+    return bool(f.limited and f.gas == -5. and all(math.isfinite(v) for v in [f.precharge_age, f.budget_remaining])
+                and 0 <= f.precharge_age < .300000001 and 0 < f.budget_remaining <= .01)
+  return _allocator_feedback_valid(f, PRECHARGE_PROTOCOL_VERSION)
+
+
 def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=False):
   f = feedback
   valid = (enabled and f is not None
            and all(math.isfinite(v) for v in [now, error, target, wanted, speed, f.t, f.requested, f.gas])
            and 0 <= now - f.t <= .100000001 and f.epoch == epoch and 0 < f.sequence <= sequence
-           and f.valid and not f.fault and phase == 'pid' and speed >= 3)
+           and epoch > 0 and f.valid and not f.fault and phase == 'pid' and speed >= 3)
   # Bounded precharge is signed brake control. Keep both signs of PID error,
   # as with nominal actual braking; the selected brake bit stays truthful.
-  if valid and allocator_feedback_valid(f) and f.precharge and not f.brake:
+  if valid and ((allocator_feedback_valid(f) and ((f.precharge and not f.brake) or coast_marker(f)))
+                or (getattr(f, 'allocator_version', 0) == 1 and _allocator_feedback_valid(f, 1) and f.precharge and not f.brake)):
     return False
   return _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=enabled)
 

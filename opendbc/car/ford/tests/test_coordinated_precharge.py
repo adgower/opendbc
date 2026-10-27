@@ -1,4 +1,4 @@
-from opendbc.car.ford.longitudinal_precharge import BoundedPrechargeAllocator as CoordinatedAllocator
+from opendbc.car.ford.longitudinal_precharge import BoundedPrechargeAllocator as CoordinatedAllocator, PRECHARGE_PROTOCOL_VERSION
 from opendbc.car.ford.longitudinal_coordination import Feedback, freeze_integral, allocator_feedback_valid
 
 
@@ -36,7 +36,8 @@ def test_repaid_budget_and_fresh_clear_rearm_without_extra_integral_debt():
 
 
 def test_bounded_precharge_and_actual_brake_have_equal_signed_integral_role():
-  common = dict(t=1.0, epoch=1, sequence=1, requested=0.1, gas=-5.0, valid=True, fault=False, allocator_version=1, reference_brake=True)
+  common = dict(t=1.0, epoch=1, sequence=1, requested=0.1, gas=-5.0, valid=True, fault=False,
+                allocator_version=PRECHARGE_PROTOCOL_VERSION, reference_brake=True)
   pre = Feedback(**common, brake=False, limited=True, precharge=True, allocator_phase="precharge", precharge_age=0.02, budget_remaining=0.009)
   brake = Feedback(**common, brake=True, limited=False, precharge=True, allocator_phase="brake")
   assert allocator_feedback_valid(pre)
@@ -127,7 +128,7 @@ def test_signed_budget_feedback_is_valid_until_deadline_then_actual_brake():
         True,
         True,
         False,
-        allocator_version=1,
+        allocator_version=PRECHARGE_PROTOCOL_VERSION,
         precharge=True,
         reference_brake=True,
         allocator_phase="precharge",

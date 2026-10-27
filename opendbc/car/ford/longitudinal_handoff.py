@@ -26,7 +26,7 @@ class Handoff:
     self.last_valid = None
     return Result(-5.0, state, reason)
 
-  def update(self, now, active, brake, target, pitch_valid, stopping):
+  def update(self, now, active, brake, target, pitch_valid, stopping, *, bounded_coast=False):
     if not math.isfinite(now):
       self.last_time = None
       return self.withdraw("inactive", "invalid_time")
@@ -42,6 +42,9 @@ class Handoff:
       return self.withdraw("braking", "stopping")
     if not pitch_valid:
       return self.withdraw("inactive", "pitch_unavailable")
+    if bounded_coast:
+      self.withdraw("coast", "bounded_true_coast")
+      return Result(-5., "qualify", "bounded_true_coast")
     if not math.isfinite(target) or target < -0.5 or target > 2.0:
       return self.withdraw("coast", "inactive_or_invalid_request")
     if self.since is None:

@@ -7,9 +7,9 @@ from opendbc.car.ford.lateral_angle import LateralAngle
 from opendbc.car.ford.longitudinal_handoff import Handoff
 from opendbc.car.ford.longitudinal_release import ReleaseGate
 from opendbc.car.ford.longitudinal_coast import BoundedCoastAdmission
-from opendbc.car.ford.longitudinal_restart import RestartClearance
+from opendbc.car.ford.longitudinal_restart import CoastClearance, CoastLease
 from opendbc.car.ford.longitudinal_coordination import GradeLease, Feedback
-from opendbc.car.ford.longitudinal_precharge import BoundedPrechargeAllocator, PRECHARGE_PROTOCOL_VERSION, allocator_request_valid
+from opendbc.car.ford.longitudinal_precharge import SignedCoastAllocator, PRECHARGE_PROTOCOL_VERSION, allocator_request_valid
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
 
@@ -52,12 +52,12 @@ class CarController(CarControllerBase):
     self.brake_request = False
     self.reference_brake = False
     self.precharge_request = False
-    self.precharge_allocator = BoundedPrechargeAllocator()
+    self.precharge_allocator = SignedCoastAllocator()
     self.last_allocation = None
     self.long_handoff = Handoff(0.5, 0.02)
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
     self.grade_map = GradeLease(True)
-    self.release_barrier = RestartClearance(True)
+    self.release_barrier = CoastClearance(True)
     self.brake_admission = BoundedCoastAdmission()
     self.last_admission = None
     self.last_grade = None
@@ -272,6 +272,17 @@ class CarController(CarControllerBase):
           eligible_allocator = (not self.coordination_fault and CC.longActive and CS.out.vEgo >= 3.
             and CS.out.canValid and request.poseValid and pitch_valid and request.referenceValid
             and str(CC.actuators.longControlState) == 'pid' and allocator_request_valid(request, now_nanos))
+          coast_scope = bool(eligible_allocator and CC.enabled and not CS.out.gasPressed and not CS.out.brakePressed
+                             and str(CC.hudControl.visualAlert) != 'fcw')
+          prior = self.last_feedback
+          torque = getattr(CS, 'longitudinal_brake_torque', None)
+          continuing = (self.last_allocation is not None and self.last_allocation.phase == 'bounded_true_coast'
+                        and prior is not None and prior.valid and not prior.fault and prior.epoch == request.epoch
+                        and 0 < prior.sequence <= request.sequence and 0 <= coordination_now - prior.t <= .100000001)
+          current_clear = (torque is not None and torque.valid and all(math.isfinite(v) for v in [torque.t, torque.value])
+                           and 0 <= coordination_now - torque.t <= .1 and 0 <= torque.value <= 4)
+          self.precharge_allocator.coast_allowed = coast_scope
+          self.precharge_allocator.continuation_clear = bool(coast_scope and continuing and current_clear)
           self.last_allocation = self.precharge_allocator.update(coordination_now, CC.enabled, CC.longActive,
             eligible_allocator, self.brake_request, float(actuators.accel), accel_pitch_compensated,
             float(request.targetAcceleration),
@@ -288,7 +299,10 @@ class CarController(CarControllerBase):
           if torque is not None and not CS.out.canValid:
             torque = None
           self.last_observer = self.release_barrier.update(coordination_now, CC.longActive,
-            bool(self.brake_request or self.precharge_request), CS.out.vEgo, str(CC.actuators.longControlState), torque, owner_active=CC.enabled)
+            bool(self.brake_request or self.precharge_request), CS.out.vEgo, str(CC.actuators.longControlState), torque, owner_active=CC.enabled,
+            coast_lease=(CoastLease(coast_scope, int(request.epoch), int(request.sequence),
+              coordination_now - self.precharge_allocator.start, self.precharge_allocator.budget - self.precharge_allocator.area)
+              if self.last_allocation is not None and self.last_allocation.phase == 'bounded_true_coast' else None))
           if self.last_observer.fault:
             self.coordination_fault = self.last_observer.reason
           if self.coordination_fault:
@@ -305,7 +319,9 @@ class CarController(CarControllerBase):
         if coordinated and self.last_admission.coast:
           gas = CarControllerParams.INACTIVE_GAS
         self.last_handoff = self.long_handoff.update(now_nanos / 1e9, CC.longActive, bool(self.brake_request or self.precharge_request), gas,
-                                                    pitch_valid, CC.actuators.longControlState == LongCtrlState.stopping)
+                                                    pitch_valid, CC.actuators.longControlState == LongCtrlState.stopping,
+                                                    bounded_coast=(coordinated and self.last_allocation is not None
+                                                      and self.last_allocation.phase == 'bounded_true_coast'))
         gas = self.last_handoff.gas
 
       if coordinated:
@@ -323,7 +339,8 @@ class CarController(CarControllerBase):
           allocator_phase = 'engineRamp'
         else:
           allocator_phase = 'drive'
-        precharge_only = allocator_phase == 'precharge'
+        precharge_only = allocator_phase == 'precharge' or (self.last_allocation is not None
+          and self.last_allocation.phase == 'bounded_true_coast')
         self.last_feedback = Feedback(coordination_now, request.epoch, request.sequence,
           float(actuators.accel) if accel_valid else 0., float(gas), bool(self.brake_request),
           bool(not self.brake_request and (self.precharge_request or not self.last_observer.allow or self.last_admission.coast

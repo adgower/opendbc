@@ -1,3 +1,4 @@
+from opendbc.car.ford.longitudinal_precharge import PRECHARGE_PROTOCOL_VERSION
 import math
 from opendbc.car.ford.carcontroller import CarController
 from opendbc.car.ford.tests import test_longitudinal_admission as contracts
@@ -9,7 +10,7 @@ class ProtocolController(CarController):
   def update(self, CC, CS, now_ns):
     cc = CC.as_builder()
     q = cc.navigatorLongitudinal
-    q.allocatorVersion = getattr(CS, "test_version", 1)
+    q.allocatorVersion = getattr(CS, "test_version", PRECHARGE_PROTOCOL_VERSION)
     q.targetAcceleration = getattr(CS, "test_target", float(CC.actuators.accel))
     q.targetMonoTime = getattr(CS, "test_target_ns", now_ns - 20_000_000)
     q.targetValid = getattr(CS, "test_target_valid", True)
@@ -106,4 +107,4 @@ def test_old_request_keeps_original_control_even_without_new_fields():
   s.warm()
   out, _ = s.step(0.3, math.asin((-0.13 - 0.3 - GRADE_OFFSET) / 9.81), torque=50)
   assert out.navigatorLongitudinal.brake
-  assert out.navigatorLongitudinal.allocatorVersion == 1  # capability, not implicit activation
+  assert out.navigatorLongitudinal.allocatorVersion == PRECHARGE_PROTOCOL_VERSION  # capability, not implicit activation

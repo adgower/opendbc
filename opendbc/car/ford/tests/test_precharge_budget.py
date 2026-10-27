@@ -86,14 +86,16 @@ def test_override_interrupts_the_clean_recovery_dwell():
   step(a, 0, net=0.1)
   for i in range(1, 20):
     step(a, i, net=-0.13, nominal=True)
-  for i in range(20, 40):
+  # Repay debt, then interrupt qualification before the new 100 ms dwell ends.
+  for i in range(20, 27):
     step(a, i, net=0.1)
-  for i in range(40, 50):
+  assert a.locked and a.recovery is not None
+  for i in range(27, 33):
     step(a, i, net=0.1, active=False)
-  for i in range(50, 60):
+  for i in range(33, 38):
     step(a, i, net=0.1)
   assert a.locked
-  for i in range(60, 85):
+  for i in range(38, 41):
     step(a, i, net=0.1)
   assert not a.locked
 
@@ -103,12 +105,16 @@ def test_invalid_context_interrupts_the_clean_recovery_dwell():
   step(a, 0, net=0.1)
   for i in range(1, 20):
     step(a, i, net=-0.13, nominal=True)
-  for i in range(20, 40):
+  for i in range(20, 27):
     step(a, i, net=0.1)
-  a.update(10.8, True, True, False, False, 0.3, 0.1, 0.1, measured_clear=True)
-  for i in range(41, 50):
+  assert a.locked and a.recovery is not None
+  a.update(10.54, True, True, False, False, 0.3, 0.1, 0.1, measured_clear=True)
+  for i in range(28, 33):
     step(a, i, net=0.1)
   assert a.locked
+  for i in range(33, 36):
+    step(a, i, net=0.1)
+  assert not a.locked
 
 
 def test_latched_nominal_demand_with_positive_net_still_has_absolute_deadline():

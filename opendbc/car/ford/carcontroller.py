@@ -55,6 +55,7 @@ class CarController(CarControllerBase):
     self.precharge_allocator = SignedCoastAllocator()
     self.last_allocation = None
     self.long_handoff = Handoff(0.5, 0.02)
+    self.prediction_pilot = None  # no permit, no prediction overlay
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
     self.grade_map = GradeLease(True)
     self.release_barrier = CoastClearance(True)
@@ -352,8 +353,19 @@ class CarController(CarControllerBase):
           budget_remaining=(self.precharge_allocator.budget - self.precharge_allocator.area) if precharge_only else 0.)
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed
-      can_sends.append(fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX,
-                                               precharge_request=self.precharge_request))
+      acc_msg = fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX,
+                                        precharge_request=self.precharge_request)
+      if self.prediction_pilot is not None:
+        try:
+          acc_msg = self.prediction_pilot.apply(self, CC, CS, now_nanos, acc_msg)
+        except Exception:
+          # Overlay failures preserve the original command and revoke the lease.
+          try:
+            self.prediction_pilot.cancel('controller_overlay_exception', now_nanos)
+          except Exception:
+            pass
+          self.prediction_pilot = None
+      can_sends.append(acc_msg)
 
       self.accel = accel
       self.gas = gas

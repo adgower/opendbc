@@ -438,7 +438,7 @@ static safety_config ford_init(uint16_t param) {
   desired_path_angle_last = 0;
   // warning: quality flags are not yet checked in openpilot's CAN parser,
   // this may be the cause of blocked messages
-  static RxCheck ford_rx_checks[] = {
+  static const RxCheck ford_rx_checks[] = {
     {.msg = {{FORD_BrakeSysFeatures, 0, 8, 50U, .max_counter = 15U}, { 0 }, { 0 }}},
     // FORD_EngVehicleSpThrottle2 has a counter that either randomly skips or by 2, likely ECU bug
     // Some hybrid models also experience a bug where this checksum mismatches for one or two frames under heavy acceleration with ACC

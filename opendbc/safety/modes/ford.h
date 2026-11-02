@@ -144,7 +144,7 @@ static const CurvatureSteeringLimits FORD_STEERING_LIMITS = {
 static bool ford_pinion_curvature = false;
 static bool ford_pinion_seen = false;
 static uint32_t ford_pinion_ts = 0U;
-static RxCheck *ford_pinion_rx_check = NULL;
+static const RxStatus *ford_pinion_rx_status = NULL;
 
 static float ford_pinion_curvature_factor(float speed) {
   // Mirrors VehicleModel with Expedition CarSpecs + 136 kg cargo and the default
@@ -164,8 +164,8 @@ static bool ford_pinion_valid(void) {
   // Match native RX lag tolerance, but also gate TX before the first sample and
   // between safety ticks. Invalid pinion never falls back to yaw measurement.
   return ford_pinion_seen && ((microsecond_timer_get() - ford_pinion_ts) <= 1000000U) &&
-         ford_pinion_rx_check->status.valid_quality_flag &&
-         (ford_pinion_rx_check->status.wrong_counters < MAX_WRONG_COUNTERS);
+         ford_pinion_rx_status->valid_quality_flag &&
+         (ford_pinion_rx_status->wrong_counters < MAX_WRONG_COUNTERS);
 }
 
 // Path angle rate-of-change check for angle mode.
@@ -487,7 +487,7 @@ static safety_config ford_init(uint16_t param) {
   ford_pinion_curvature = ford_canfd && GET_FLAG(param, FORD_PARAM_PINION_CURVATURE);
   ford_pinion_seen = false;
   ford_pinion_ts = 0U;
-  ford_pinion_rx_check = &ford_rx_checks[sizeof(ford_rx_checks) / sizeof(ford_rx_checks[0]) - 1U];
+  ford_pinion_rx_status = &rx_status[sizeof(ford_rx_checks) / sizeof(ford_rx_checks[0]) - 1U];
   if (ford_pinion_curvature) {
     // Do not mix samples from a previously selected yaw-based mode.
     curvature_state.meas = (struct sample_t){0};

@@ -171,3 +171,20 @@ class TestPinionCurvature(unittest.TestCase):
       self.assertEqual(bool(self.steer()), allowed)
     addr, data, bus = fordcan.create_lka_msg(packer, can, False, 0.)
     self.safety.safety_tx_hook(libsafety_py.make_CANPacket(addr, bus, data))
+
+  def test_pinion_rx_state_resets_across_disabled_mode_roundtrip(self):
+    for counter in range(1, 8):
+      self.pinion(0., counter)
+    for counter in range(8, 15):
+      self.pinion(0., counter, quality=0)
+    self.safety.set_controls_allowed(True)
+    self.assertFalse(self.steer())
+    self.safety.set_safety_hooks(6, 2)
+    self.safety.set_controls_allowed(True)
+    self.assertTrue(self.steer())
+    self.safety.set_safety_hooks(6, 10)
+    self.safety.set_controls_allowed(True)
+    self.assertFalse(self.steer())
+    self.assertTrue(self.pinion(0., 1))
+    self.safety.set_controls_allowed(True)
+    self.assertTrue(self.steer())

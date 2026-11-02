@@ -278,11 +278,15 @@ class UnwindAllocation:
     return AngleLateralResult(path_angle=value, shadow_curvature=stock.shadow_curvature)
 
 
-def create_tracking_trial(CP, *, enabled=False):
+def create_tracking_trial(CP, *, enabled=False, curve_scope_enabled=False):
   """Select the wrapper only for the existing Navigator prerequisite flags."""
   from opendbc.car.ford.values import CAR, FordFlags
   from opendbc.car.ford.lateral_angle_midrange_admission import MidrangeAdmission
 
   if not enabled or CP.carFingerprint != CAR.FORD_EXPEDITION_MK4 or not CP.flags & FordFlags.PINION_CURVATURE or not CP.flags & FordFlags.LOW_SPEED_GAIN:
     return None
-  return UnwindAllocation(MidrangeAdmission(CP, enabled=True), enabled=True)
+  strategy = UnwindAllocation(MidrangeAdmission(CP, enabled=True), enabled=True)
+  if curve_scope_enabled is True:
+    from opendbc.car.ford.lateral_angle_wheel_target import enable_calibrated_curve_scope
+    enable_calibrated_curve_scope(strategy)
+  return strategy

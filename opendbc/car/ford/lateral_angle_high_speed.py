@@ -23,6 +23,7 @@ class HighSpeedReduction:
   def __init__(self, CP, *, enabled=False):
     self.reference = RollAwareMapping(CP, enabled=True)
     self.enabled = enabled
+    self.curve_scope_extension_enabled = False  # selected only by complete tracking factory
     self.reduction = 0.0
     self.path_angle_last = 0.0
     self.final_residual = 0.0
@@ -143,6 +144,17 @@ class HighSpeedReduction:
     self.body_reason = "confirmed"
     return True
 
+  def _curve_scope(self, k, v):
+    original = 1 - smoothstep((abs(k) - 0.001) / 0.0005)
+    if not self.curve_scope_extension_enabled:
+      return original
+    mph = v / 0.44704
+    blend = smoothstep((mph - 70) / 5) * (1 - smoothstep((mph - 83) / 2))
+    if blend <= 0:
+      return original
+    extended = 1 - smoothstep((abs(k) - 0.001) / 0.001)
+    return original + blend * (extended - original)
+
   def _fraction(self, CC, CS, a):
     ctx = self.reference.context
     cal = self.reference.calibration
@@ -202,7 +214,7 @@ class HighSpeedReduction:
       self.reason = "driver_or_inactive"
       return 0.0
     mph = v / 0.44704
-    weight = smoothstep((mph - 60) / 10) * (1 - smoothstep((abs(k) - 0.001) / 0.0005)) * smoothstep((abs(k) * v * v - 0.25) / 0.25)
+    weight = smoothstep((mph - 60) / 10) * self._curve_scope(k, v) * smoothstep((abs(k) * v * v - 0.25) / 0.25)
     if weight <= 0 or k * previous < 0:
       self.reason = "outside_scope_or_unwinding"
       return 0.0

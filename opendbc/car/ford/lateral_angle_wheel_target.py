@@ -102,7 +102,7 @@ class CalibratedWheelTargetReduction(InstalledHighSpeedReduction):
         self.wheel_reason = "closing_or_under_target"
         if useful > 0:
           k = float(a.curvature)
-          scope = smoothstep((v / 0.44704 - 60) / 10) * (1 - smoothstep((abs(k) - 0.001) / 0.0005)) * smoothstep((abs(k) * v * v - 0.25) / 0.25)
+          scope = smoothstep((v / 0.44704 - 60) / 10) * self._curve_scope(k, v) * smoothstep((abs(k) * v * v - 0.25) / 0.25)
           fraction = scope * min(self.MAX_FRACTION, useful / abs(actual))
           self.wheel_reason = "confirmed_target_excess"
     result = original * (1 - blend) + fraction * blend
@@ -120,7 +120,7 @@ class CalibratedWheelTargetReduction(InstalledHighSpeedReduction):
       previous = self.path_angle_last
       reference = self.reference.update(CC, CS, actuators)
       for name, value in vars(self.installed_baseline).items():
-        if name not in ("reference", "enabled"):
+        if name not in ("reference", "enabled", "curve_scope_extension_enabled"):
           setattr(self, name, copy.copy(value))
       self.wheel_history.clear()
       self.wheel_axis = 0
@@ -148,3 +148,20 @@ class CalibratedWheelTargetReduction(InstalledHighSpeedReduction):
       return AngleLateralResult(path_angle=result, shadow_curvature=installed.shadow_curvature)
     self.handoff_pending = False
     return super().update(CC, CS, actuators)
+
+
+def enable_calibrated_curve_scope(strategy):
+  seen = set()
+
+  def visit(obj):
+    if id(obj) in seen:
+      return
+    seen.add(id(obj))
+    if type(obj) is CalibratedWheelTargetReduction:
+      obj.curve_scope_extension_enabled = True
+    for name in ('reference', 'baseline', 'upper_reference', 'stock', 'unchanged'):
+      child = vars(obj).get(name)
+      if child is not None and hasattr(child, '__dict__'):
+        visit(child)
+  visit(strategy)
+  return strategy

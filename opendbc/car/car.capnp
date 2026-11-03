@@ -373,6 +373,7 @@ struct CarControl {
     targetAcceleration @8 :Float64;  # exact planner target consumed by this control
     targetMonoTime @9 :UInt64;
     targetValid @10 :Bool;
+    retentionVersion @11 :UInt16;  # zero/unknown never opts into extra retention
   }
 
   struct NavigatorLongitudinalFeedback {

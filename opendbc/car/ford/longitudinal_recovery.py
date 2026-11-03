@@ -143,13 +143,17 @@ class RollingGuard:
 
 
 class CommandRecovery:
-  def __init__(self):
+  def __init__(self, *, retention_enabled=False):
+    self.retention_enabled = bool(retention_enabled)
+    self.retention_tracker = None
     self.rolling_guard = RollingGuard()
     self.counts = Counter()
     self.reset()
 
   def reset(self):
     self.rolling_guard.reset()
+    from opendbc.car.ford.longitudinal_retention import make_receipt_tracker
+    self.retention_tracker = make_receipt_tracker(enabled=self.retention_enabled)
     self.reduction = 0.0
     self.overlay_epoch = None
     self.overlay_origin = None
@@ -227,7 +231,12 @@ class CommandRecovery:
     )
     if local_limit:
       self.counts["local_constraint_freeze"] += 1
-    return nominal or local_limit
+    owner_limit = False
+    if self.retention_tracker is not None:
+      current_valid = bool(self.valid and self.sample is not None and self.sample[:3] == (t, owner, seq))
+      owner_limit = self.retention_tracker.freeze(t, owner, seq, error, target, wanted, speed, phase, fb,
+                                                  enabled, current_valid)
+    return nominal or local_limit or owner_limit
 
   def apply(self, output, integral_delta, wanted, phase):
     if self.sample is None:

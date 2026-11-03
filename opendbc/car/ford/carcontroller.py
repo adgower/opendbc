@@ -8,7 +8,8 @@ from opendbc.car.ford.longitudinal_handoff import Handoff
 from opendbc.car.ford.longitudinal_release import ReleaseGate
 from opendbc.car.ford.longitudinal_coast import BoundedCoastAdmission
 from opendbc.car.ford.longitudinal_restart import CoastClearance, CoastLease
-from opendbc.car.ford.longitudinal_coordination import GradeLease, Feedback
+from opendbc.car.ford.longitudinal_retention import make_retention_owner, consumer_scope, RetentionReceipt
+from opendbc.car.ford.longitudinal_coordination import GradeLease, Feedback, coordination_available
 from opendbc.car.ford.longitudinal_precharge import SignedCoastAllocator, PRECHARGE_PROTOCOL_VERSION, allocator_request_valid
 from opendbc.car.ford.values import CarControllerParams, FordFlags, FordPrefLateralControl, CAR
 from opendbc.car.interfaces import CarControllerBase, V_CRUISE_MAX
@@ -57,6 +58,7 @@ class CarController(CarControllerBase):
     self.long_handoff = Handoff(0.5, 0.02)
     self.prediction_pilot = None  # no permit, no prediction overlay
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
+    self.history_release_enabled = False  # startup-only opt-in; original progress by default
     self.grade_map = GradeLease(True)
     self.release_barrier = CoastClearance(True)
     self.brake_admission = BoundedCoastAdmission()
@@ -70,6 +72,7 @@ class CarController(CarControllerBase):
     self.coordination_sequence = 0
     self.coordination_control_valid = False
     self.release_gate = ReleaseGate()
+    self.retention_owner = None
     self.last_release = None
     self.last_handoff = None
     self.main_on_last = False
@@ -87,6 +90,21 @@ class CarController(CarControllerBase):
       self.lateral_angle = LateralAngle(CP)
     self.angle_mode_engaged = False
     self.shadow_curvature = 0.0
+
+  def configure_history_release(self, *, enabled=False):
+    if self.frame != 0:
+      raise RuntimeError("history release selection is startup-only")
+    self.history_release_enabled = bool(enabled and coordination_available(self.CP) and self.longitudinal_coordination_enabled)
+    progress_factory = None
+    if self.history_release_enabled:
+      from opendbc.car.ford.longitudinal_progress_historical import HistoricalProgress
+      progress_factory = HistoricalProgress
+    self.release_barrier = CoastClearance(True, progress_factory=progress_factory)
+
+  def configure_retention(self, *, enabled=False):
+    if self.frame != 0:
+      raise RuntimeError("retention selection is startup-only")
+    self.retention_owner = make_retention_owner(enabled=enabled)
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -247,6 +265,7 @@ class CarController(CarControllerBase):
             and (self.last_grade.reason == 'invalid_pose_disengage' or not accel_valid)):
           self.coordination_fault = 'invalid_pose_or_accel'
 
+      prior_actual_brake = self.brake_request
       brake_request_previous = self.brake_request
       if navigator_longitudinal and coordinated:
         brake_request_previous = self.reference_brake
@@ -295,6 +314,18 @@ class CarController(CarControllerBase):
               and 0 <= CS.longitudinal_brake_torque.value <= 4.))
           self.brake_request = self.last_allocation.brake
           self.precharge_request = self.last_allocation.precharge
+          if self.retention_owner is not None:
+            owned = self.retention_owner.update(coordination_now, CC.enabled, CC.longActive,
+              bool(coast_scope and consumer_scope(self, CC, CS, now_nanos)), self.reference_brake, self.precharge_request,
+              self.last_release.reason == 'qualified_positive_release', prior_actual_brake,
+              bool(current_clear and not self.release_barrier.needs and self.last_observer is not None and self.last_observer.allow),
+              float(actuators.accel), accel_pitch_compensated, float(CS.out.aEgo), float(request.targetAcceleration),
+              int(request.epoch), int(request.sequence), source_ns=getattr(self, 'coordination_speed_ns', 0))
+            if owned:
+              from opendbc.car.ford.longitudinal_precharge import PrechargeDecision
+              self.brake_request = True
+              self.precharge_request = True
+              self.last_allocation = PrechargeDecision(True, True, 'owned_extra_retention')
         if coordinated:
           torque = getattr(CS, 'longitudinal_brake_torque', None)
           if torque is not None and not CS.out.canValid:
@@ -350,7 +381,11 @@ class CarController(CarControllerBase):
           allocator_version=PRECHARGE_PROTOCOL_VERSION, precharge=bool(self.brake_request or self.precharge_request),
           reference_brake=bool(self.reference_brake), allocator_phase=allocator_phase,
           precharge_age=(coordination_now - self.precharge_allocator.start) if precharge_only else 0.,
-          budget_remaining=(self.precharge_allocator.budget - self.precharge_allocator.area) if precharge_only else 0.)
+          budget_remaining=(self.precharge_allocator.budget - self.precharge_allocator.area) if precharge_only else 0.,
+          reason=(RetentionReceipt(self.retention_owner.until_ns).encode()
+            if self.retention_owner is not None and self.retention_owner.holding and CC.enabled and CC.longActive
+            and not self.coordination_fault and self.brake_request and not self.reference_brake and allocator_phase == 'brake'
+            else self.coordination_fault or (self.last_admission.reason if self.last_admission.coast else self.last_observer.reason)))
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed
       acc_msg = fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX,
@@ -409,7 +444,7 @@ class CarController(CarControllerBase):
       output.limited = f.limited
       output.valid = f.valid
       output.fault = f.fault
-      output.reason = self.coordination_fault or (self.last_admission.reason if self.last_admission.coast else self.last_observer.reason)
+      output.reason = f.reason
       output.gradeOffset = self.last_grade.offset
       output.allocatorVersion = f.allocator_version
       output.precharge = f.precharge

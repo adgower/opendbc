@@ -30,6 +30,12 @@ class Feedback:
   allocator_phase: str = 'inactive'
   precharge_age: float = 0.
   budget_remaining: float = 0.
+  reason: str = ''
+
+  @property
+  def retention_receipt(self):
+    from opendbc.car.ford.longitudinal_retention import RetentionReceipt
+    return RetentionReceipt.parse(self.reason)
 
   def encode(self):
     return json.dumps(asdict(self), allow_nan=False).encode()
@@ -89,8 +95,9 @@ class BrakeReleaseProgress:
 
 
 class ReleaseBarrier:
-  def __init__(self, enabled=False):
+  def __init__(self, enabled=False, *, progress_factory=None):
     self.enabled = enabled
+    self.progress_factory = progress_factory or BrakeReleaseProgress
     self.reset()
 
   def reset(self):
@@ -100,7 +107,7 @@ class ReleaseBarrier:
     self.last_sample = None
     self.last = None
     self.fault = None
-    self.release_progress = BrakeReleaseProgress()
+    self.release_progress = self.progress_factory()
 
   def fail(self, reason):
     self.fault = reason
@@ -298,6 +305,7 @@ def feedback_from_wire(f):
     f.producerMonoTime / 1e9, int(f.epoch), int(f.sequence), float(f.requested), float(f.gas), bool(f.brake), bool(f.limited), bool(f.valid), bool(f.fault),
     int(getattr(f, 'allocatorVersion', 0)), bool(getattr(f, 'precharge', False)), bool(getattr(f, 'referenceBrake', False)),
     phase_name, float(getattr(f, 'prechargeAge', 0.)), float(getattr(f, 'budgetRemaining', 0.)),
+    str(getattr(f, 'reason', '')),
   )
 
 

@@ -143,7 +143,8 @@ class RollingGuard:
 
 
 class CommandRecovery:
-  def __init__(self, *, retention_enabled=False):
+  def __init__(self, *, retention_enabled=False, nominal_policy=None):
+    self.nominal_policy = nominal_policy
     self.retention_enabled = bool(retention_enabled)
     self.retention_tracker = None
     self.rolling_guard = RollingGuard()
@@ -211,7 +212,8 @@ class CommandRecovery:
     self.sample = (now, epoch, sequence, a_target, CS.aEgo, CS.vEgo, feedback, dt)
 
   def freeze(self, t, owner, seq, error, target, wanted, speed, phase, fb, enabled=False):
-    nominal = freeze_integral(t, owner, seq, error, target, wanted, speed, phase, fb, enabled=enabled)
+    policy = self.nominal_policy or freeze_integral
+    nominal = policy(t, owner, seq, error, target, wanted, speed, phase, fb, enabled=enabled)
     local_limit = bool(
       self.valid
       and enabled

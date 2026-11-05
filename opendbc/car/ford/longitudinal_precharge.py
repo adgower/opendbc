@@ -4,11 +4,12 @@ from dataclasses import dataclass
 import math
 
 PRECHARGE_PROTOCOL_VERSION = 3
+REFERENCE_REQUEST_VERSION = 4
 
 
 def allocator_request_valid(request, now_ns):
   return bool(
-    request.allocatorVersion == PRECHARGE_PROTOCOL_VERSION
+    request.allocatorVersion in (PRECHARGE_PROTOCOL_VERSION, REFERENCE_REQUEST_VERSION)
     and request.targetValid
     and math.isfinite(request.targetAcceleration)
     and 0 < request.targetMonoTime <= request.producerMonoTime <= now_ns

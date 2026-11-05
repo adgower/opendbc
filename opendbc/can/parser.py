@@ -211,8 +211,8 @@ class CANParser:
       strings = [strings]
 
     for addr in self.addresses:
-      for k in self.vl_all[addr]:
-        self.vl_all[addr][k].clear()
+      for values in self.vl_all[addr].values():
+        values.clear()
 
     updated_addrs: set[int] = set()
     for entry in strings:
@@ -233,10 +233,12 @@ class CANParser:
           vl_all_addr = self.vl_all[address]
           ts_addr = self.ts_nanos[address]
 
+          timestamp = state.timestamps[-1]
           for i, sig in enumerate(state.signals):
-            vl_addr[sig.name] = state.vals[i]
-            vl_all_addr[sig.name] = state.all_vals[i]
-            ts_addr[sig.name] = state.timestamps[-1]
+            name = sig.name
+            vl_addr[name] = state.vals[i]
+            vl_all_addr[name] = state.all_vals[i]
+            ts_addr[name] = timestamp
 
       if not bus_empty:
         self.last_nonempty_nanos = t

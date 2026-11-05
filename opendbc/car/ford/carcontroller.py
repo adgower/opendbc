@@ -58,6 +58,7 @@ class CarController(CarControllerBase):
     self.long_handoff = Handoff(0.5, 0.02)
     self.prediction_pilot = None  # no permit, no prediction overlay
     self.longitudinal_coordination_enabled = False  # explicit offroad opt-in from card
+    self.coast_reference_enabled = False  # startup-only, no helper allocated when off
     self.history_release_enabled = False  # startup-only opt-in; original progress by default
     self.grade_map = GradeLease(True)
     self.release_barrier = CoastClearance(True)
@@ -94,6 +95,8 @@ class CarController(CarControllerBase):
   def configure_history_release(self, *, enabled=False):
     if self.frame != 0:
       raise RuntimeError("history release selection is startup-only")
+    if self.coast_reference_enabled:
+      raise RuntimeError("history selection must precede coast reference selection")
     self.history_release_enabled = bool(enabled and coordination_available(self.CP) and self.longitudinal_coordination_enabled)
     progress_factory = None
     if self.history_release_enabled:
@@ -104,7 +107,27 @@ class CarController(CarControllerBase):
   def configure_retention(self, *, enabled=False):
     if self.frame != 0:
       raise RuntimeError("retention selection is startup-only")
+    if enabled and self.coast_reference_enabled:
+      raise ValueError("coast reference with retention is not supported")
     self.retention_owner = make_retention_owner(enabled=enabled)
+
+  def configure_coast_reference(self, *, enabled=False):
+    if self.frame != 0:
+      raise RuntimeError("coast reference selection is startup-only")
+    if self.coast_reference_enabled:
+      if not enabled:
+        raise RuntimeError("coast reference selection is already installed")
+      return
+    if not enabled:
+      return
+    if not coordination_available(self.CP) or not self.longitudinal_coordination_enabled:
+      raise ValueError("coast reference requires Navigator Alpha coordination")
+    if self.retention_owner is not None:
+      raise ValueError("coast reference with retention is not supported")
+    from opendbc.car.ford.longitudinal_reference_control import ReferenceControl
+    self.coast_reference = ReferenceControl(self.CP, history_enabled=self.history_release_enabled)
+    self.coast_reference.install(self)
+    self.coast_reference_enabled = True
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -200,8 +223,12 @@ class CarController(CarControllerBase):
     ### longitudinal control ###
     # send acc msg at 50Hz
     if self.CP.openpilotLongitudinalControl and (self.frame % CarControllerParams.ACC_CONTROL_STEP) == 0:
+      if self.coast_reference_enabled:
+        self.coast_reference.begin(self, CC, CS, now_nanos)
       navigator_longitudinal = self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
-      accel_valid = math.isfinite(actuators.accel)
+      prefix = getattr(self.coast_reference.reference, "physical_prefix", None) if self.coast_reference_enabled else None
+      phase = prefix[4] if prefix is not None else str(actuators.longControlState)
+      accel_valid = prefix[0] if prefix is not None else math.isfinite(actuators.accel)
       accel = (self.accel if CC.longActive else 0.0) if navigator_longitudinal and not accel_valid else actuators.accel
       gas = CarControllerParams.INACTIVE_GAS if navigator_longitudinal and not accel_valid else accel
 
@@ -209,24 +236,42 @@ class CarController(CarControllerBase):
         # Compensate for engine creep at low speed.
         # Either the ABS does not account for engine creep, or the correction is very slow
         # TODO: verify this applies to EV/hybrid
-        accel = apply_creep_compensation(accel, CS.out.vEgo)
+        if prefix is not None:
+          accel = prefix[1]
+        elif navigator_longitudinal and CS.out.vEgo >= 3.0:
+          accel = float(accel)
+        else:
+          accel = apply_creep_compensation(accel, CS.out.vEgo)
 
         # The stock system has been seen rate limiting the brake accel to 5 m/s^3,
         # however even 3.5 m/s^3 causes some overshoot with a step response.
         accel = max(accel, self.accel - (3.5 * CarControllerParams.ACC_CONTROL_STEP * DT_CTRL))
 
-      accel = float(np.clip(accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
-      gas = float(np.clip(gas, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
+      if navigator_longitudinal:
+        accel = float(
+          CarControllerParams.ACCEL_MIN if accel < CarControllerParams.ACCEL_MIN
+          else CarControllerParams.ACCEL_MAX if accel > CarControllerParams.ACCEL_MAX else accel
+        )
+        gas = float(
+          CarControllerParams.ACCEL_MIN if gas < CarControllerParams.ACCEL_MIN
+          else CarControllerParams.ACCEL_MAX if gas > CarControllerParams.ACCEL_MAX else gas
+        )
+      else:
+        accel = float(np.clip(accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
+        gas = float(np.clip(gas, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
 
       # Both gas and accel are in m/s^2, accel is used solely for braking
       if not CC.longActive or gas < CarControllerParams.MIN_GAS:
         gas = CarControllerParams.INACTIVE_GAS
 
       # PCM applies pitch compensation to gas/accel, but we need to compensate for the brake/pre-charge bits
-      accel_due_to_pitch = 0.0
-      pitch_valid = len(CC.orientationNED) == 3 and all(math.isfinite(x) for x in CC.orientationNED)
-      if len(CC.orientationNED) == 3 and (not navigator_longitudinal or pitch_valid):
-        accel_due_to_pitch = math.sin(CC.orientationNED[1]) * ACCELERATION_DUE_TO_GRAVITY
+      if prefix is not None:
+        pitch_valid, accel_due_to_pitch = prefix[2], prefix[3]
+      else:
+        accel_due_to_pitch = 0.0
+        pitch_valid = len(CC.orientationNED) == 3 and all(math.isfinite(x) for x in CC.orientationNED)
+        if len(CC.orientationNED) == 3 and (not navigator_longitudinal or pitch_valid):
+          accel_due_to_pitch = math.sin(CC.orientationNED[1]) * ACCELERATION_DUE_TO_GRAVITY
 
       coordination_now = now_nanos / 1e9
       request = CC.navigatorLongitudinal
@@ -257,7 +302,7 @@ class CarController(CarControllerBase):
         installed_gravity = accel_due_to_pitch
         self.last_grade = self.grade_map.update(coordination_now, accel_due_to_pitch,
           request.poseMonoTime / 1e9, request.poseValid and pitch_valid,
-          CC.longActive, CS.out.vEgo, str(CC.actuators.longControlState), request.referenceValid)
+          CC.longActive, CS.out.vEgo, phase, request.referenceValid)
         accel_due_to_pitch = self.last_grade.gravity
         if actuators.accel < CarControllerParams.MIN_GAS:
           accel_due_to_pitch = min(installed_gravity, accel_due_to_pitch)
@@ -279,19 +324,19 @@ class CarController(CarControllerBase):
       if navigator_longitudinal:
         self.last_admission = self.brake_admission.update(coordination_now,
           coordinated and not self.coordination_fault and CC.longActive and CS.out.vEgo >= 3.0
-          and CS.out.canValid and request.poseValid and str(CC.actuators.longControlState) == 'pid' and pitch_valid and request.referenceValid,
+          and CS.out.canValid and request.poseValid and phase == 'pid' and pitch_valid and request.referenceValid,
           self.brake_request, brake_request_previous, actuators.accel, accel_pitch_compensated,
           not self.release_barrier.needs, getattr(CS, 'longitudinal_brake_torque', None))
         self.brake_request = self.last_admission.brake
         self.last_release = self.release_gate.update(now_nanos / 1e9, CC.longActive, self.brake_request,
                                                      brake_request_previous, actuators.accel, accel_pitch_compensated,
-                                                     str(CC.actuators.longControlState), pitch_valid)
+                                                     phase, pitch_valid)
         self.brake_request = self.last_release.brake
         self.reference_brake = self.brake_request
         if coordinated:
           eligible_allocator = (not self.coordination_fault and CC.longActive and CS.out.vEgo >= 3.
             and CS.out.canValid and request.poseValid and pitch_valid and request.referenceValid
-            and str(CC.actuators.longControlState) == 'pid' and allocator_request_valid(request, now_nanos))
+            and phase == 'pid' and allocator_request_valid(request, now_nanos))
           coast_scope = bool(eligible_allocator and CC.enabled and not CS.out.gasPressed and not CS.out.brakePressed
                              and str(CC.hudControl.visualAlert) != 'fcw')
           prior = self.last_feedback
@@ -331,7 +376,7 @@ class CarController(CarControllerBase):
           if torque is not None and not CS.out.canValid:
             torque = None
           self.last_observer = self.release_barrier.update(coordination_now, CC.longActive,
-            bool(self.brake_request or self.precharge_request), CS.out.vEgo, str(CC.actuators.longControlState), torque, owner_active=CC.enabled,
+            bool(self.brake_request or self.precharge_request), CS.out.vEgo, phase, torque, owner_active=CC.enabled,
             coast_lease=(CoastLease(coast_scope, int(request.epoch), int(request.sequence),
               coordination_now - self.precharge_allocator.start, self.precharge_allocator.budget - self.precharge_allocator.area)
               if self.last_allocation is not None and self.last_allocation.phase == 'bounded_true_coast' else None))
@@ -355,6 +400,16 @@ class CarController(CarControllerBase):
                                                     bounded_coast=(coordinated and self.last_allocation is not None
                                                       and self.last_allocation.phase == 'bounded_true_coast'))
         gas = self.last_handoff.gas
+        if self.coast_reference_enabled and self.last_handoff.reason.startswith('exit_reference_'):
+          self.coordination_fault = self.last_handoff.reason
+          CC = CC.as_builder()
+          CC.longActive = False
+          CC.actuators.accel = 0.
+          CC.actuators.longControlState = LongCtrlState.off
+          self.brake_request = False
+          self.precharge_request = False
+          accel = 0.
+          gas = CarControllerParams.INACTIVE_GAS
 
       if coordinated:
         if self.coordination_fault:
@@ -386,6 +441,9 @@ class CarController(CarControllerBase):
             if self.retention_owner is not None and self.retention_owner.holding and CC.enabled and CC.longActive
             and not self.coordination_fault and self.brake_request and not self.reference_brake and allocator_phase == 'brake'
             else self.coordination_fault or (self.last_admission.reason if self.last_admission.coast else self.last_observer.reason)))
+      if self.coast_reference_enabled and coordinated:
+        self.coast_reference.actual_accel = accel
+        self.last_feedback = self.coast_reference.finish(self, CC, self.last_feedback, now_nanos)
       stopping = CC.actuators.longControlState == LongCtrlState.stopping
       # TODO: look into using the actuators packet to send the desired speed
       acc_msg = fordcan.create_acc_msg(self.packer, self.CAN, CC.longActive, gas, accel, stopping, self.brake_request, v_ego_kph=V_CRUISE_MAX,

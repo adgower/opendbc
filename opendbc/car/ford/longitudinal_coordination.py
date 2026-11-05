@@ -245,7 +245,10 @@ def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, f
            and epoch > 0 and f.valid and not f.fault and phase == 'pid' and speed >= 3)
   # Bounded precharge is signed brake control. Keep both signs of PID error,
   # as with nominal actual braking; the selected brake bit stays truthful.
-  if valid and ((allocator_feedback_valid(f) and ((f.precharge and not f.brake) or coast_marker(f)))
+  reason = getattr(f, 'reason', '')
+  role_allowed = not (isinstance(reason, str) and reason.startswith(
+    ('bounded-release-reference-', 'bounded-release-selection-')))
+  if valid and role_allowed and ((allocator_feedback_valid(f) and ((f.precharge and not f.brake) or coast_marker(f)))
                 or (getattr(f, 'allocator_version', 0) == 1 and _allocator_feedback_valid(f, 1) and f.precharge and not f.brake)):
     return False
   return _freeze_integral_base(now, epoch, sequence, error, target, wanted, speed, phase, feedback, enabled=enabled)

@@ -247,7 +247,7 @@ def freeze_integral(now, epoch, sequence, error, target, wanted, speed, phase, f
   # as with nominal actual braking; the selected brake bit stays truthful.
   reason = getattr(f, 'reason', '')
   role_allowed = not (isinstance(reason, str) and reason.startswith(
-    ('bounded-release-reference-', 'bounded-release-selection-')))
+    ('bounded-release-reference-', 'bounded-release-selection-', 'navigator-production-v5:')))
   if valid and role_allowed and ((allocator_feedback_valid(f) and ((f.precharge and not f.brake) or coast_marker(f)))
                 or (getattr(f, 'allocator_version', 0) == 1 and _allocator_feedback_valid(f, 1) and f.precharge and not f.brake)):
     return False

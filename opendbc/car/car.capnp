@@ -374,6 +374,18 @@ struct CarControl {
     targetMonoTime @9 :UInt64;
     targetValid @10 :Bool;
     retentionVersion @11 :UInt16;  # zero/unknown never opts into extra retention
+    productionContractId @12 :Text;
+    productionSourceId @13 :Text;
+    productionRunId @14 :UInt64;
+    nominalRawAcceleration @15 :Float64;
+    nominalLongControlState @16 :Actuators.LongControlState;
+    nominalValid @17 :Bool;
+    productionSourceValid @18 :Bool;
+    noLead @19 :Bool;
+    radarMonoTime @20 :UInt64;
+    feedbackCutoffMonoTime @21 :UInt64;
+    productionUrgent @22 :Bool;
+    productionPoseMonoTime @23 :UInt64;  # immutable producer pose before consumer refresh
   }
 
   struct NavigatorLongitudinalFeedback {
@@ -394,6 +406,30 @@ struct CarControl {
     allocatorPhase @14 :AllocatorPhase;
     prechargeAge @15 :Float64;  # episode age at producerMonoTime
     budgetRemaining @16 :Float64;
+    productionContractId @17 :Text;
+    productionSourceId @18 :Text;
+    productionRunId @19 :UInt64;
+    nominalValid @20 :Bool;
+    nominalFeedback @21 :NominalFeedback;
+
+    struct NominalFeedback {
+      producerMonoTime @0 :UInt64;
+      epoch @1 :UInt64;
+      sequence @2 :UInt64;
+      requested @3 :Float64;
+      gas @4 :Float64;
+      brake @5 :Bool;
+      limited @6 :Bool;
+      valid @7 :Bool;
+      fault @8 :Bool;
+      allocatorVersion @9 :UInt16;
+      precharge @10 :Bool;
+      referenceBrake @11 :Bool;
+      allocatorPhase @12 :AllocatorPhase;
+      prechargeAge @13 :Float64;
+      budgetRemaining @14 :Float64;
+      reason @15 :Text;
+    }
 
     enum AllocatorPhase {
       inactive @0;

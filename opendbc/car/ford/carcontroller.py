@@ -129,7 +129,19 @@ class CarController(CarControllerBase):
     self.coast_reference.install(self)
     self.coast_reference_enabled = True
 
+  def configure_production_reference(self, *, source_id="navigator-production-producer-v1"):
+    if self.frame != 0:
+      raise RuntimeError("production reference selection is startup-only")
+    self.configure_coast_reference(enabled=True)
+    from opendbc.car.ford.longitudinal_production_control import ProductionReferenceControl
+    self.coast_reference = ProductionReferenceControl(self.CP, self.history_release_enabled, source_id)
+    self.coast_reference.install(self)
+    self.production_reference_enabled = True
+
   def update(self, CC, CS, now_nanos):
+    if getattr(self, 'production_reference_enabled', False):
+      self.coast_reference._state = CS
+      CC = self.coast_reference.prepare(self, CC, CS, now_nanos)
     can_sends = []
     lka_msg_sent = False
     angle_mode_engaged_last = self.angle_mode_engaged
@@ -510,6 +522,8 @@ class CarController(CarControllerBase):
       output.allocatorPhase = f.allocator_phase
       output.prechargeAge = f.precharge_age
       output.budgetRemaining = f.budget_remaining
+      if getattr(self, 'production_reference_enabled', False):
+        self.coast_reference.write_nominal_wire(output)
 
     self.frame += 1
     return new_actuators, can_sends

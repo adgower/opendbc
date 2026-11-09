@@ -330,6 +330,13 @@ typedef struct {
 
   RxStatus rx_status[MAX_RX_CHECKS];  // dynamic state of current_safety_config.rx_checks
 
+  // Ford path-angle and pinion observations belong to each safety copy.
+  bool ford_angle_mode_engaged;
+  int16_t ford_shadow_curvature_raw;
+  int ford_desired_path_angle_last;
+  bool ford_pinion_seen;
+  uint32_t ford_pinion_ts;
+
   int honda_brake;
   bool honda_brake_switch_prev;
   bool honda_fwd_brake;
@@ -359,6 +366,9 @@ typedef struct {
   int alternative_experience;
 
   ChryslerPlatform chrysler_platform;
+
+  bool ford_pinion_curvature;
+  uint8_t ford_pinion_rx_index;
 
   GmHardware gm_hw;
   const LongitudinalLimits *gm_long_limits;

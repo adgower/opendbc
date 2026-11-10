@@ -11,7 +11,8 @@ from opendbc.car.fw_query_definitions import AddrType
 class IsoTpParallelQuery:
   def __init__(self, can_send: CanSendCallable, can_recv: CanRecvCallable, bus: int, addrs: list[int] | list[AddrType],
                request: list[bytes], response: list[bytes], response_offset: int = 0x8,
-               functional_addrs: list[int] | None = None, response_pending_timeout: float = 10) -> None:
+               functional_addrs: list[int] | None = None, response_pending_timeout: float = 10, *,
+               retry_busy_addrs: set[AddrType] | None = None) -> None:
     self.can_send = can_send
     self.can_recv = can_recv
     self.bus = bus
@@ -19,6 +20,7 @@ class IsoTpParallelQuery:
     self.response = response
     self.functional_addrs = functional_addrs or []
     self.response_pending_timeout = response_pending_timeout
+    self.retry_busy_addrs = retry_busy_addrs or set()
 
     real_addrs = [a if isinstance(a, tuple) else (a, None) for a in addrs]
     for tx_addr, _ in real_addrs:
@@ -98,11 +100,25 @@ class IsoTpParallelQuery:
     results = {}
     start_time = time.monotonic()
     addrs_responded = set()  # track addresses that have ever sent a valid iso-tp frame for timeout logging
+    busy_retries: dict[AddrType, int] = defaultdict(int)
+    retry_at: dict[AddrType, float] = {}
     response_timeouts = {tx_addr: start_time + timeout for tx_addr in self.msg_addrs}
     while True:
       self.rx()
 
       for tx_addr, msg in msgs.items():
+        if tx_addr in self.retry_busy_addrs and request_done[tx_addr]:
+          continue
+        if tx_addr in retry_at:
+          now = time.monotonic()
+          if now < retry_at[tx_addr] or now - start_time >= total_timeout:
+            continue
+          del retry_at[tx_addr]
+          # A reply received during backoff cannot satisfy the next request.
+          self._can_rx(self.msg_addrs[tx_addr], tx_addr[1])
+          msg.send(self.request[request_counter[tx_addr]])
+          response_timeouts[tx_addr] = now + timeout
+          continue
         try:
           dat, rx_in_progress = msg.recv()
         except Exception:
@@ -138,7 +154,12 @@ class IsoTpParallelQuery:
             request_done[tx_addr] = True
         else:
           error_code = dat[2] if len(dat) > 2 else -1
-          if error_code == 0x78:
+          if (tx_addr in self.retry_busy_addrs and busy_retries[tx_addr] < 2
+              and dat == bytes((0x7F, self.request[counter][0], 0x21))):
+            busy_retries[tx_addr] += 1
+            retry_at[tx_addr] = time.monotonic() + 0.15
+            response_timeouts[tx_addr] = retry_at[tx_addr] + timeout
+          elif error_code == 0x78:
             response_timeouts[tx_addr] = time.monotonic() + self.response_pending_timeout
             carlog.error(f"iso-tp query response pending: {tx_addr}")
           else:

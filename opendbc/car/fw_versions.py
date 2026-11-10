@@ -10,7 +10,7 @@ from opendbc.car.carlog import carlog
 from opendbc.car.structs import CarParams
 from opendbc.car.ecu_addrs import get_ecu_addrs
 from opendbc.car.fingerprints import FW_VERSIONS
-from opendbc.car.fw_query_definitions import ESSENTIAL_ECUS, AddrType, EcuAddrBusType, FwQueryConfig, LiveFwVersions, OfflineFwVersions
+from opendbc.car.fw_query_definitions import ESSENTIAL_ECUS, AddrType, EcuAddrBusType, FwQueryConfig, LiveFwVersions, OfflineFwVersions, StdQueries
 from opendbc.car.interfaces import get_interface_attr
 from opendbc.car.isotp_parallel_query import IsoTpParallelQuery
 
@@ -296,7 +296,14 @@ def get_fw_versions(can_recv: CanRecvCallable, can_send: CanSendCallable, set_ob
                          (len(r.whitelist_ecus) == 0 or ecu_types[(b, a, s)] in r.whitelist_ecus)]
 
           if query_addrs:
-            query = IsoTpParallelQuery(can_send, can_recv, r.bus, query_addrs, r.request, r.response, r.rx_offset)
+            retry_busy_addrs = None
+            if (brand == 'ford' and r.bus == 0 and not r.logging
+                and r.request == [StdQueries.TESTER_PRESENT_REQUEST, StdQueries.MANUFACTURER_SOFTWARE_VERSION_REQUEST]):
+              eps = (0x730, None)
+              if eps in query_addrs and ecu_types.get((brand, *eps)) == Ecu.eps:
+                retry_busy_addrs = {eps}
+            query = IsoTpParallelQuery(can_send, can_recv, r.bus, query_addrs, r.request, r.response, r.rx_offset,
+                                       retry_busy_addrs=retry_busy_addrs)
             for (tx_addr, sub_addr), version in query.get_data(timeout).items():
               f = CarParams.CarFw()
 

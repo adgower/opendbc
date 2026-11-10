@@ -12,7 +12,7 @@ class TestNavigatorMigration(unittest.TestCase):
     self.assertEqual(FordFlags.LOW_SPEED_GAIN & FordFlags.HAS_BSM, 0)
 
   def test_navigator_geometry_on_fork_profile(self):
-    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
     self.assertAlmostEqual(cp.wheelbase, 3.1115, places=5)
     self.assertAlmostEqual(cp.steerRatio, 19.6, places=5)
     self.assertAlmostEqual(cp.centerToFront, 3.1115 * .44, places=5)
@@ -21,7 +21,7 @@ class TestNavigatorMigration(unittest.TestCase):
     self.assertIsNotNone(importlib.util.find_spec('opendbc.car.ford.pinion'))
 
   def test_mass_normalized_model_matches_preserved_fixed_model(self):
-    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
     vm = VehicleModel(cp)
     wheelbase, mass = 3.1115, 2878.
     front, rear = 353037.28125, 438491.46875

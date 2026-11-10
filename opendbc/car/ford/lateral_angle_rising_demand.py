@@ -40,7 +40,7 @@ class RampTrackingPrototype(ReleaseTrackingPrototype):
       and self.feedback_valid
       and self.speed_weight(v) > 0
       and not driver_pressed
-      and self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+      and self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
       and self.CP.flags & FordFlags.PINION_CURVATURE
       and self.CP.flags & FordFlags.LOW_SPEED_GAIN
       and all(math.isfinite(x) for x in (requested, measured, feedforward))

@@ -9,7 +9,7 @@ from opendbc.car.ford.lateral_angle import LateralAngle
 from opendbc.car.ford.lateral_angle_low_speed_prototype import LowSpeedGainPrototype
 
 
-def controller(cls, car=CAR.FORD_EXPEDITION_MK4):
+def controller(cls, car=CAR.LINCOLN_NAVIGATOR_MK4):
   return cls(CarInterface.get_non_essential_params(car))
 
 
@@ -98,7 +98,7 @@ def test_deployment_selector_requires_pinion_and_is_opt_in():
   from unittest.mock import patch
 
   def get(pinion, gain):
-    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
 
     class Fixture:
       @staticmethod
@@ -108,10 +108,10 @@ def test_deployment_selector_requires_pinion_and_is_opt_in():
       def __new__(cls, config):
         return SimpleNamespace(CP=config)
 
-    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.FORD_EXPEDITION_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
-         patch.dict(car_helpers.interfaces, {CAR.FORD_EXPEDITION_MK4: Fixture}):
+    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.LINCOLN_NAVIGATOR_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
+         patch.dict(car_helpers.interfaces, {CAR.LINCOLN_NAVIGATOR_MK4: Fixture}):
       ci = car_helpers.get_car(None, None, None, False, False, ford_pinion_curvature=pinion, ford_low_speed_gain=gain)
-    return ci.CP, CarController(DBC[CAR.FORD_EXPEDITION_MK4], ci.CP)
+    return ci.CP, CarController(DBC[CAR.LINCOLN_NAVIGATOR_MK4], ci.CP)
 
   for pinion, gain in [(False, False), (False, True), (True, False), (True, True)]:
     cp, cc = get(pinion, gain)

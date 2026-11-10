@@ -41,7 +41,7 @@ class BoundedTrackingPrototype(VeryLowSpeedGainPrototype):
   def correction(self, v, requested, measured, feedforward, driver_pressed):
     weight = self.speed_weight(v)
     if (not self.tracking_enabled or not weight or driver_pressed
-        or self.CP.carFingerprint != CAR.FORD_EXPEDITION_MK4
+        or self.CP.carFingerprint != CAR.LINCOLN_NAVIGATOR_MK4
         or not self.CP.flags & FordFlags.PINION_CURVATURE
         or not self.CP.flags & FordFlags.LOW_SPEED_GAIN
         or not all(math.isfinite(x) for x in (requested, measured, feedforward))):

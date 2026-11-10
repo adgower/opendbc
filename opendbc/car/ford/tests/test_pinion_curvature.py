@@ -14,7 +14,7 @@ from opendbc.safety.tests.common import CANPackerSafety
 
 class TestPinionCurvature(unittest.TestCase):
   def setUp(self):
-    self.cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    self.cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
     configure_pinion_curvature(self.cp, True)
     self.safety = libsafety_py.libsafety
     self.safety.set_safety_hooks(6, 10)
@@ -54,7 +54,7 @@ class TestPinionCurvature(unittest.TestCase):
     for car in CAR:
       cp = CarInterface.get_non_essential_params(car)
       configure_pinion_curvature(cp, True)
-      expected = car == CAR.FORD_EXPEDITION_MK4
+      expected = car == CAR.LINCOLN_NAVIGATOR_MK4
       self.assertEqual(bool(cp.flags & FordFlags.PINION_CURVATURE), expected, car)
       self.assertEqual(bool(cp.safetyConfigs[-1].safetyParam & 8), expected, car)
 
@@ -158,7 +158,7 @@ class TestPinionCurvature(unittest.TestCase):
     from opendbc.car.ford import fordcan
     from opendbc.car.ford.values import DBC
     from opendbc.can import CANPacker
-    packer = CANPacker(DBC[CAR.FORD_EXPEDITION_MK4][Bus.pt])
+    packer = CANPacker(DBC[CAR.LINCOLN_NAVIGATOR_MK4][Bus.pt])
     can = fordcan.CanBus(self.cp)
     for counter in range(6):
       self.rx('BrakeSysFeatures', {'Veh_V_ActlBrk': 72., 'VehVActlBrk_D_Qf': 3, 'VehVActlBrk_No_Cnt': counter})

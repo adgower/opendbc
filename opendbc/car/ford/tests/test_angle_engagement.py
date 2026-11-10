@@ -11,9 +11,9 @@ from opendbc.safety.tests.libsafety import libsafety_py
 
 class TestAngleEngagement(unittest.TestCase):
   def setup_controller(self, speed):
-    cp = structs.CarParams(carFingerprint=CAR.FORD_EXPEDITION_MK4, flags=int(FordFlags.CANFD),
+    cp = structs.CarParams(carFingerprint=CAR.LINCOLN_NAVIGATOR_MK4, flags=int(FordFlags.CANFD),
                            safetyConfigs=[{"safetyModel": "ford", "safetyParam": 3}])
-    self.controller = CarController(DBC[CAR.FORD_EXPEDITION_MK4], cp)
+    self.controller = CarController(DBC[CAR.LINCOLN_NAVIGATOR_MK4], cp)
     self.command = structs.CarControl()
     self.state = SimpleNamespace(out=structs.CarState(vEgo=speed, vEgoRaw=speed),
                                  buttons_stock_values=defaultdict(int), lkas_status_stock_values=defaultdict(int),

@@ -84,7 +84,7 @@ class CarController(CarControllerBase):
 
     # Fork policy: default to angle mode for improved steering feel
     self.lateral_control_mode = FordPrefLateralControl.angle
-    if CP.flags & FordFlags.LOW_SPEED_GAIN and CP.flags & FordFlags.PINION_CURVATURE and CP.carFingerprint == CAR.FORD_EXPEDITION_MK4:
+    if CP.flags & FordFlags.LOW_SPEED_GAIN and CP.flags & FordFlags.PINION_CURVATURE and CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4:
       from opendbc.car.ford.lateral_angle_very_low_speed_prototype import VeryLowSpeedGainPrototype
       self.lateral_angle = VeryLowSpeedGainPrototype(CP, enabled=True)
     else:
@@ -199,7 +199,7 @@ class CarController(CarControllerBase):
         # including steering frames between the regular 33 Hz LKA updates.
         # Pinion-mode safety checks must see this request's current intent,
         # including active requests between the regular metadata slots.
-        sync_pinion_intent = (lat_active and self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+        sync_pinion_intent = (lat_active and self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
                               and bool(self.CP.flags & FordFlags.PINION_CURVATURE))
         if use_angle_mode and self.angle_mode_engaged and ((self.frame % CarControllerParams.LKA_STEP) == 0 or
                                                          self.angle_mode_engaged != angle_mode_engaged_last or sync_pinion_intent):
@@ -225,7 +225,7 @@ class CarController(CarControllerBase):
     if self.CP.openpilotLongitudinalControl and (self.frame % CarControllerParams.ACC_CONTROL_STEP) == 0:
       if self.coast_reference_enabled:
         self.coast_reference.begin(self, CC, CS, now_nanos)
-      navigator_longitudinal = self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+      navigator_longitudinal = self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
       prefix = getattr(self.coast_reference.reference, "physical_prefix", None) if self.coast_reference_enabled else None
       phase = prefix[4] if prefix is not None else str(actuators.longControlState)
       accel_valid = prefix[0] if prefix is not None else math.isfinite(actuators.accel)

@@ -6,7 +6,7 @@ from opendbc.car.ford.values import CAR, DBC
 from opendbc.car.ford.longitudinal_coordination import BrakeReleaseProgress, Torque
 
 
-def controller(car=CAR.FORD_EXPEDITION_MK4, alpha=True, coordinated=True, enabled=None):
+def controller(car=CAR.LINCOLN_NAVIGATOR_MK4, alpha=True, coordinated=True, enabled=None):
   cp = CarInterface.get_non_essential_params(car)
   cp.openpilotLongitudinalControl = alpha
   c = CarController(DBC[car], cp)
@@ -24,9 +24,9 @@ def test_default_off_keeps_original_progress():
 
 
 @pytest.mark.parametrize("car,alpha,coordinated,want", [
-  (CAR.FORD_EXPEDITION_MK4, True, True, True),
-  (CAR.FORD_EXPEDITION_MK4, False, True, False),
-  (CAR.FORD_EXPEDITION_MK4, True, False, False),
+  (CAR.LINCOLN_NAVIGATOR_MK4, True, True, True),
+  (CAR.LINCOLN_NAVIGATOR_MK4, False, True, False),
+  (CAR.LINCOLN_NAVIGATOR_MK4, True, False, False),
   (CAR.FORD_F_150_MK14, True, True, False),
 ])
 def test_startup_selection_requires_supported_alpha_and_coordination(car, alpha, coordinated, want):

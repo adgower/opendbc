@@ -10,7 +10,7 @@ from opendbc.car.ford.lateral_angle_low_speed_prototype import LowSpeedGainProto
 from opendbc.car.ford.lateral_angle_very_low_speed_prototype import VeryLowSpeedGainPrototype
 
 def cp():
-  value=CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+  value=CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
   value.flags |= int(FordFlags.PINION_CURVATURE|FordFlags.LOW_SPEED_GAIN)
   return value
 

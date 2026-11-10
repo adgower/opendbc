@@ -19,7 +19,7 @@ PINION_GEOMETRY = {
 def configure_pinion_curvature(cp: CarParams, enabled: bool) -> None:
   if cp.brand != 'ford':
     return
-  supported = cp.carFingerprint == CAR.FORD_EXPEDITION_MK4 and bool(cp.flags & FordFlags.CANFD)
+  supported = cp.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4 and bool(cp.flags & FordFlags.CANFD)
   if enabled and supported:
     if not all(math.isclose(getattr(cp, key), value, rel_tol=1e-6, abs_tol=1e-6) for key, value in PINION_GEOMETRY.items()):
       raise ValueError('Ford pinion feedback geometry does not match the safety model')

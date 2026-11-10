@@ -85,7 +85,7 @@ def test_fault_does_not_rearm_on_override_but_disabled_owner_resets():
 def test_actual_controller_retains_inactive_gas_until_recorded_release_clears():
   cases = json.loads((Path(__file__).parent / "fixtures/release_progress.json").read_text())
   for case in cases:
-    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
     cp.flags = 15
     cp.openpilotLongitudinalControl = True
     c = CarController(DBC[cp.carFingerprint], cp)

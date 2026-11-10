@@ -484,7 +484,7 @@ def create_tracking_trial(CP, *, enabled=False, curve_scope_enabled=False):
   from opendbc.car.ford.values import CAR, FordFlags
   from opendbc.car.ford.lateral_angle_midrange_admission import MidrangeAdmission
 
-  if not enabled or CP.carFingerprint != CAR.FORD_EXPEDITION_MK4 or not CP.flags & FordFlags.PINION_CURVATURE or not CP.flags & FordFlags.LOW_SPEED_GAIN:
+  if not enabled or CP.carFingerprint != CAR.LINCOLN_NAVIGATOR_MK4 or not CP.flags & FordFlags.PINION_CURVATURE or not CP.flags & FordFlags.LOW_SPEED_GAIN:
     return None
   strategy = WheelTargetTrial(MidrangeAdmission(CP, enabled=True))
   if curve_scope_enabled is True:

@@ -12,7 +12,7 @@ from opendbc.car.vehicle_model import VehicleModel
 
 class TestPinionOption(unittest.TestCase):
   def setUp(self):
-    self.cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    self.cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
 
   def configure(self, cp, enabled):
     from opendbc.car.ford.pinion import configure_pinion_curvature
@@ -74,15 +74,15 @@ class TestPinionOption(unittest.TestCase):
 
       def __new__(cls, config):
         return construct(config)
-    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.FORD_EXPEDITION_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
-         patch.dict(car_helpers.interfaces, {CAR.FORD_EXPEDITION_MK4: Fixture}):
+    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.LINCOLN_NAVIGATOR_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
+         patch.dict(car_helpers.interfaces, {CAR.LINCOLN_NAVIGATOR_MK4: Fixture}):
       ci = car_helpers.get_car(None, None, None, False, False, None, ford_pinion_curvature=True)
     self.assertEqual(ci.CP.safetyConfigs[-1].safetyParam, 10)
 
   def test_get_car_clears_option_even_with_prior_mode_cache(self):
     self.configure(self.cp, True)
     cached = self.cp.as_reader()
-    fresh = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    fresh = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
 
     class Fixture:
       @staticmethod
@@ -92,8 +92,8 @@ class TestPinionOption(unittest.TestCase):
       def __new__(cls, config):
         return SimpleNamespace(CP=config)
 
-    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.FORD_EXPEDITION_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
-         patch.dict(car_helpers.interfaces, {CAR.FORD_EXPEDITION_MK4: Fixture}):
+    with patch.object(car_helpers, 'fingerprint', return_value=(CAR.LINCOLN_NAVIGATOR_MK4, {}, 'TESTVIN', [], 'fixed', True)), \
+         patch.dict(car_helpers.interfaces, {CAR.LINCOLN_NAVIGATOR_MK4: Fixture}):
       ci = car_helpers.get_car(None, None, None, False, False, cached, ford_pinion_curvature=False)
     self.assertEqual(ci.CP.flags, 1)
     self.assertEqual(ci.CP.safetyConfigs[-1].safetyParam, 2)

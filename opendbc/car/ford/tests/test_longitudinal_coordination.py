@@ -12,7 +12,7 @@ from opendbc.safety.tests.libsafety import libsafety_py
 
 
 class LongitudinalHarness:
-  def __init__(self, speed=0., pitch=0., car=CAR.FORD_EXPEDITION_MK4, alpha=True):
+  def __init__(self, speed=0., pitch=0., car=CAR.LINCOLN_NAVIGATOR_MK4, alpha=True):
     cp = CarInterface.get_non_essential_params(car)
     cp.openpilotLongitudinalControl = alpha
     self.controller = CarController(DBC[car], cp)
@@ -43,7 +43,7 @@ class LongitudinalHarness:
 
 class TestLongitudinalCoordination(unittest.TestCase):
   def test_near_cruise_cap_releases_latched_brake(self):
-    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
     self.assertEqual(float(CarInterface.get_pid_accel_limits(cp, 10., 10.)[1]), .2)
     h = LongitudinalHarness()
     h.step(-.2, phase='stopping', frames=100)

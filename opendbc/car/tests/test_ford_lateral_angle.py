@@ -21,7 +21,7 @@ class TestGetPlatformGains(unittest.TestCase):
 
   def test_expedition_gains(self):
     """Expedition should use provisional fork tuning gains (1.425, 1.425)."""
-    gains = _get_platform_gains(CAR.FORD_EXPEDITION_MK4)
+    gains = _get_platform_gains(CAR.LINCOLN_NAVIGATOR_MK4)
     self.assertEqual(gains, _GAIN_EXPEDITION)
     self.assertAlmostEqual(gains[0], 1.425, places=3)
     self.assertAlmostEqual(gains[1], 1.425, places=3)
@@ -148,7 +148,7 @@ class MockCC:
 class TestLateralAngle(unittest.TestCase):
   """Tests for LateralAngle class."""
 
-  def _make_cp(self, car_fingerprint=CAR.FORD_EXPEDITION_MK4):
+  def _make_cp(self, car_fingerprint=CAR.LINCOLN_NAVIGATOR_MK4):
     """Create a mock CarParams."""
     cp = MagicMock()
     cp.carFingerprint = car_fingerprint

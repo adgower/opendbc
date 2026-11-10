@@ -131,7 +131,7 @@ class ObserverContinuity(Installed):
     raw = self.actual_reference_path if mph < 75 else self.unchanged.stock.upper_reference.reference.path_angle_last
     if (
       self.enabled
-      and self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+      and self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
       and self.CP.flags & FordFlags.PINION_CURVATURE
       and self.CP.flags & FordFlags.LOW_SPEED_GAIN
       and scope > 0

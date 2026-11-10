@@ -18,7 +18,7 @@ class VeryLowSpeedGainPrototype(LowSpeedGainPrototype):
 
   def get_curvature_factor(self, v_ego: float, kappa_cmd: float) -> float:
     current = super().get_curvature_factor(v_ego, kappa_cmd)
-    if (not self.very_low_speed_enabled or self.CP.carFingerprint != CAR.FORD_EXPEDITION_MK4
+    if (not self.very_low_speed_enabled or self.CP.carFingerprint != CAR.LINCOLN_NAVIGATOR_MK4
         or not self.CP.flags & FordFlags.PINION_CURVATURE
         or not self.CP.flags & FordFlags.LOW_SPEED_GAIN or v_ego >= FADE_END_MPS):
       return current

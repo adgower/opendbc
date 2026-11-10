@@ -20,7 +20,7 @@ from opendbc.car.ford.longitudinal_coordination import Torque, GRADE_OFFSET
 
 class Scene:
   def __init__(self, enabled=True):
-    cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+    cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
     cp.openpilotLongitudinalControl = True
     self.c = controller_class(enabled)(DBC[cp.carFingerprint], cp)
     self.c.longitudinal_coordination_enabled = True

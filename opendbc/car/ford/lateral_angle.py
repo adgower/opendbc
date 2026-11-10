@@ -38,21 +38,21 @@ _GAIN_NEUTRAL = (1.0, 1.0)
 # NOT Navigator-verified. Subject to change with real-world validation.
 _GAIN_EXPEDITION = (1.425, 1.425)
 
-# Provisional Expedition speed multipliers for the high-curvature arm only.
+# Speed multipliers carried over from the legacy Navigator profile.
 _FORD_LOW_SPEED_FACTOR_ANG = 1.20
 _FORD_HIGH_SPEED_FACTOR_ANG = 0.97
 
-_EXPEDITION_CARS = frozenset({
-  CAR.FORD_EXPEDITION_MK4,
+_NAVIGATOR_CARS = frozenset({
+  CAR.LINCOLN_NAVIGATOR_MK4,
 })
 
 
 def _get_platform_gains(car_fingerprint: str) -> tuple[float, float]:
   """Returns (low_curvature_gain, high_curvature_gain) for the platform.
 
-  Only Expedition has tuned gains (provisional). All other platforms use neutral 1.0.
+  The Navigator retains its legacy profile gains. All other platforms use neutral 1.0.
   """
-  if car_fingerprint in _EXPEDITION_CARS:
+  if car_fingerprint in _NAVIGATOR_CARS:
     return _GAIN_EXPEDITION
   return _GAIN_NEUTRAL
 
@@ -120,8 +120,8 @@ class LateralAngle:
   def get_curvature_factor(self, v_ego: float, kappa_cmd: float) -> float:
     # Speed-interpolated gain: 1.0 at low speed, platform-specific at high speed
     low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, self.gain_low_curv]))
-    low_speed_factor = _FORD_LOW_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
-    high_speed_factor = _FORD_HIGH_SPEED_FACTOR_ANG if self.CP.carFingerprint in _EXPEDITION_CARS else 1.0
+    low_speed_factor = _FORD_LOW_SPEED_FACTOR_ANG if self.CP.carFingerprint in _NAVIGATOR_CARS else 1.0
+    high_speed_factor = _FORD_HIGH_SPEED_FACTOR_ANG if self.CP.carFingerprint in _NAVIGATOR_CARS else 1.0
     high_gain_interp = float(interp(v_ego, [13.5, 26.82],
                                     [1.30 * low_speed_factor, self.gain_high_curv * high_speed_factor]))
 

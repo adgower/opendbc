@@ -315,4 +315,4 @@ def feedback_from_wire(f):
 def coordination_available(CP):
   from opendbc.car.ford.values import CAR
 
-  return CP.carFingerprint == CAR.FORD_EXPEDITION_MK4 and CP.openpilotLongitudinalControl
+  return CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4 and CP.openpilotLongitudinalControl

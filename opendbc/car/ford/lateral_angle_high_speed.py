@@ -178,7 +178,7 @@ class HighSpeedReduction:
       and not getattr(s, "leftBlinker", False)
       and not getattr(s, "rightBlinker", False)
       and not getattr(s, "brakePressed", False)
-      and self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+      and self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
       and self.CP.flags & FordFlags.PINION_CURVATURE
       and self.CP.flags & FordFlags.LOW_SPEED_GAIN
       and ctx is not None

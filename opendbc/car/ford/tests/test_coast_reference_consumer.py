@@ -11,7 +11,7 @@ def test_off_creates_no_reference_helper():
 
 
 def test_startup_only_and_supported_profile():
-  for car, alpha, coordinated in [(CAR.FORD_F_150_MK14, True, True), (CAR.FORD_EXPEDITION_MK4, False, True), (CAR.FORD_EXPEDITION_MK4, True, False)]:
+  for car, alpha, coordinated in [(CAR.FORD_F_150_MK14, True, True), (CAR.LINCOLN_NAVIGATOR_MK4, False, True), (CAR.LINCOLN_NAVIGATOR_MK4, True, False)]:
     c = controller(car, alpha, coordinated)
     with pytest.raises(ValueError):
       c.configure_coast_reference(enabled=True)
@@ -139,7 +139,7 @@ def test_canonical_helper_and_policy_ast_parity():
   expected = {
     "NominalResult": "16197692f35698c67a3f3e6ce4be8191790334a79d043f7995770793793c3128",
     "apply_creep_compensation": "1679a0fb4ffabfd6cd71a1809831fd7089ea5c1e767df2f9816501e2962e317e",
-    "NominalReference": "2dfd9bf236efe68a0fde8bbeb64c0fb3aaf379f1264155ba2535b9a230a8a76c",
+    "NominalReference": "05fc951330a93b9e01621430c46508183c30601dccb9bdf051dcc2cb068c612d",
     "BoundedResponseEntry": "5160dd3ba1f08e59808c29db4ae283f6d5eefe3a0c848447082a15d16b816c5e",
     "QualifiedRearmEntry": "3a749e7b4aaf80d92043a796c3d82cf25e461adbf49f73a758d6125153c373be",
     "PendingRearmEntry": "988adbb6f66d2cd39d75d0f287e0890f83ac1446e728e04d049ff35638656619",

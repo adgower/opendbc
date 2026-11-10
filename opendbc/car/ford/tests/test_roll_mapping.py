@@ -9,7 +9,7 @@ from opendbc.car.ford.lateral_angle_roll_mapping import RollAwareMapping
 
 
 def make(mapping=True):
-  cp = CarInterface.get_non_essential_params(CAR.FORD_EXPEDITION_MK4)
+  cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
   cp.flags |= int(FordFlags.PINION_CURVATURE | FordFlags.LOW_SPEED_GAIN)
   return RollAwareMapping(cp, enabled=True, mapping_enabled=mapping), BudgetedTrackingPrototype(cp, enabled=True)
 

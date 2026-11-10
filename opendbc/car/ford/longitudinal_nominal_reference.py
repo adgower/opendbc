@@ -80,7 +80,7 @@ class NominalReference:
     long_active = CC.longActive
     long_state = CC.actuators.longControlState
     phase = str(long_state)
-    navigator_longitudinal = self.CP.carFingerprint == CAR.FORD_EXPEDITION_MK4
+    navigator_longitudinal = self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
     accel_valid = math.isfinite(actuators.accel)
     accel = (self.accel if long_active else 0.0) if navigator_longitudinal and not accel_valid else actuators.accel
     gas = CarControllerParams.INACTIVE_GAS if navigator_longitudinal and not accel_valid else accel

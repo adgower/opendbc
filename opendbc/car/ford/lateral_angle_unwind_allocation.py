@@ -447,7 +447,8 @@ class WheelTargetTrial(UnwindAllocation):
     self.previous_curvature = k
     value = original.path_angle
     steer = CC.latActive and not self.reference.human_turn_active
-    rate = float(np.interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES)) if self.preview_eligible or self.handoff_pending else 0.0
+    highway_scope = smoothstep((mph - 70.5) / 1.5) * (1 - smoothstep((mph - 74.5) / 0.5))
+    rate = float(np.interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES)) if self.preview_eligible or self.handoff_pending or highway_scope > 0 else 0.0
     leaf = self.selected_leaf
     can_track = (steer and not getattr(CS.out, "steeringPressed", False) and self.latest_evidence is not None
                  and self.wheel_fraction > 0 and not self.wheel_release
@@ -469,6 +470,18 @@ class WheelTargetTrial(UnwindAllocation):
         self.shadow_reduction = 0.0
     else:
       self.shadow_reduction = 0.0
+    # Reuse a reduction the installed wheel-target leaf has already earned.
+    # Never allocate extra area, extend its timing, or combine it with outer trim.
+    if can_track and highway_scope > 0 and self.term == 0 and leaf.reduction > 0:
+      raw = float(getattr(self.reference, "actual_reference_path", value))
+      trial_path = leaf.path_angle_last
+      remaining = max(0.0, min(0.01, 0.15 * abs(raw)) - max(0.0, abs(raw) - abs(value)))
+      if raw * value > 0 and value * trial_path > 0 and abs(trial_path) < abs(value):
+        trim = min((abs(value) - abs(trial_path)) * highway_scope, leaf.reduction, 0.0009, remaining)
+        reduced = value - math.copysign(trim, value)
+        if trim > 0 and abs(reduced - self.previous_output) <= rate:
+          value = reduced
+          self.reason = "wheel_target_highway"
     if steer and self.handoff_pending:
       limited = max(self.previous_output - rate, min(self.previous_output + rate, value))
       if limited != value:

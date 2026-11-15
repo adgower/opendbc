@@ -10,6 +10,7 @@ from opendbc.car.carlog import carlog
 from opendbc.car.structs import CarParams
 from opendbc.car.ecu_addrs import get_ecu_addrs
 from opendbc.car.fingerprints import FW_VERSIONS
+from opendbc.car.ford.values import CAR as FORD
 from opendbc.car.fw_query_definitions import ESSENTIAL_ECUS, AddrType, EcuAddrBusType, FwQueryConfig, LiveFwVersions, OfflineFwVersions, StdQueries
 from opendbc.car.interfaces import get_interface_attr
 from opendbc.car.isotp_parallel_query import IsoTpParallelQuery
@@ -143,6 +144,24 @@ def match_fw_to_car_exact(live_fw_versions: LiveFwVersions, match_brand: str | N
   return set(candidates.keys()) - invalid
 
 
+def _match_navigator_bus1_eps(fw_versions: list[CarParams.CarFw], ford_fw: LiveFwVersions, log: bool) -> set[str]:
+  eps = (0x730, None)
+  if eps in ford_fw:
+    return set()
+
+  # Ford already reads the EPS software version on bus 1 for logging.
+  request = [StdQueries.TESTER_PRESENT_REQUEST, StdQueries.MANUFACTURER_SOFTWARE_VERSION_REQUEST]
+  eps_versions = {bytes(fw.fwVersion) for fw in fw_versions
+                  if fw.brand == 'ford' and fw.bus == 1 and fw.logging and fw.ecu == Ecu.eps
+                  and fw.address == 0x730 and fw.subAddress == 0 and fw.responseAddress == 0x738
+                  and list(fw.request) == request}
+  if len(eps_versions) != 1:
+    return set()
+
+  matches = match_fw_to_car_exact({**ford_fw, eps: eps_versions}, match_brand='ford', log=log)
+  return matches if matches == {FORD.LINCOLN_NAVIGATOR_MK4} else set()
+
+
 def match_fw_to_car(fw_versions: list[CarParams.CarFw], vin: str, allow_exact: bool = True,
                     allow_fuzzy: bool = True, log: bool = True) -> tuple[bool, set[str]]:
   # Try exact matching first
@@ -157,12 +176,21 @@ def match_fw_to_car(fw_versions: list[CarParams.CarFw], vin: str, allow_exact: b
     matches: set[str] = set()
     for brand in VERSIONS.keys():
       fw_versions_dict = build_fw_dict(fw_versions, filter_brand=brand)
-      matches |= match_func(fw_versions_dict, match_brand=brand, log=log)
+      brand_matches = match_func(fw_versions_dict, match_brand=brand, log=log)
+      if exact_match and brand == 'ford' and not brand_matches:
+        brand_matches = _match_navigator_bus1_eps(fw_versions, fw_versions_dict, log)
+      matches |= brand_matches
 
       # If specified and no matches so far, fall back to brand's fuzzy fingerprinting function
       config = FW_QUERY_CONFIGS[brand]
       if not exact_match and not len(matches) and config.match_fw_to_car_fuzzy is not None:
         matches |= config.match_fw_to_car_fuzzy(fw_versions_dict, vin, VERSIONS[brand])
+
+    if not exact_match and FORD.LINCOLN_NAVIGATOR_MK4 in matches:
+      navigator_eps = (Ecu.eps, 0x730, None)
+      eps_versions = build_fw_dict(fw_versions, filter_brand='ford').get(navigator_eps[1:], set())
+      if not eps_versions.intersection(FW_VERSIONS[FORD.LINCOLN_NAVIGATOR_MK4][navigator_eps]):
+        matches.discard(FORD.LINCOLN_NAVIGATOR_MK4)
 
     if len(matches):
       return exact_match, matches

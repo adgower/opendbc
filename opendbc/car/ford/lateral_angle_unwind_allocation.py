@@ -387,7 +387,6 @@ class UnwindAllocation:
     return AngleLateralResult(path_angle=value, shadow_curvature=stock.shadow_curvature)
 
 
-
 class WheelTargetTrial(UnwindAllocation):
   """Shadow the installed strategy and select only scoped wheel-target reductions."""
 
@@ -492,6 +491,76 @@ class WheelTargetTrial(UnwindAllocation):
     return AngleLateralResult(path_angle=value, shadow_curvature=original.shadow_curvature)
 
 
+class MidSpeedUnwind(WheelTargetTrial):
+  """Extend unwind through the mid-speed gap with an independent trim allowance."""
+
+  def __init__(self, reference):
+    super().__init__(reference)
+    self.bridge_previous = None
+    self.bridge_trim = 0.
+    self.bridge_spent = deque()
+
+  def update(self, CC, CS, a):
+    stock = super().update(CC, CS, a)
+    now = self.last
+    previous = stock.path_angle if self.bridge_previous is None else self.bridge_previous
+    last_trim = self.bridge_trim
+    spent = self.bridge_spent
+    while spent and now - spent[0][0] >= 8_000_000_000:
+      spent.popleft()
+    used = sum(delta for _, delta in spent)
+    self.bridge_previous, self.bridge_trim = stock.path_angle, 0.
+    if not CC.latActive or self.reference.human_turn_active or getattr(CS.out, 'steeringPressed', False):
+      return stock
+
+    v = float(CS.out.vEgoRaw)
+    mph = v / .44704
+    rate = float(np.interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES))
+    signed = math.copysign(1., stock.path_angle)
+    path = abs(stock.path_angle)
+    taper = smoothstep(mph - 56) * (1. - smoothstep(mph - 60))
+    amount = 0.
+    if taper > 0 and len(self.rows) == 5 and self.rows[-1]['t'] == now and self.term == 0:
+      rr = list(self.rows)
+      offsets = np.array([(e['t'] - rr[0]['t']) / 1e9 for e in rr])
+      mags = np.array([abs(e['k']) for e in rr])
+      if .16 <= offsets[-1] <= .30 and mags[-1] <= .95 * mags[0] and all(mags[i] >= mags[i+1] for i in range(4)):
+        err = np.array([e['error'] for e in rr])
+        time = offsets - offsets.mean()
+        den = time @ time
+        slope = time @ mags / den
+        error_slope = time @ err / den
+        body_ok = all(e['excess'] > max(.10, .10 * e['demand']) for e in rr)
+        onset_ok = last_trim > 0 or min(rr[-1]['excess'], float(np.median([e['excess'] for e in rr]))) >= .25
+        wheel_ok = min(err) > .5 and min(err[-1], err[-1] + .30 * error_slope) > .5
+        if body_ok and onset_ok and wheel_ok and slope < -.10 * mags[-1]:
+          raw = float(getattr(self.reference, 'actual_reference_path', stock.path_angle))
+          remaining = max(0., min(.01, .15 * abs(raw)) - max(0., abs(raw) - path)) if raw * signed > 0 else 0.
+          amount = min(taper * min(.0015, .05 * path, .15 * -slope * path / mags[-1]),
+                       remaining, last_trim + .0003, max(0., .0003375 - used) / .225)
+
+    amount = min(amount, max(0., path - (signed * previous - rate)))
+    # If dropping the trim would make the actual rate too high, retain only
+    # the attenuation required for a rate-limited handoff.
+    handoff = min(last_trim, max(0., path - signed * previous - rate)) if previous * signed > 0 else 0.
+    amount = max(amount, handoff)
+    if not 0 < amount < path:
+      return stock
+    value = signed * (path - amount)
+    if abs(value - previous) > rate + 1e-12:
+      return stock
+    signal = self.path_signal
+
+    def wire(x):
+      return math.floor((-x - signal.offset) / signal.factor + .5)
+    if wire(value) == wire(stock.path_angle):
+      return stock
+    self.bridge_trim, self.bridge_previous = amount, value
+    spent.append((now, amount * .06))
+    self.reason = 'bridge_unwind'
+    return AngleLateralResult(path_angle=value, shadow_curvature=stock.shadow_curvature)
+
+
 def create_tracking_trial(CP, *, enabled=False, curve_scope_enabled=False):
   """Select the wrapper only for the existing Navigator prerequisite flags."""
   from opendbc.car.ford.values import CAR, FordFlags
@@ -499,7 +568,7 @@ def create_tracking_trial(CP, *, enabled=False, curve_scope_enabled=False):
 
   if not enabled or CP.carFingerprint != CAR.LINCOLN_NAVIGATOR_MK4 or not CP.flags & FordFlags.PINION_CURVATURE or not CP.flags & FordFlags.LOW_SPEED_GAIN:
     return None
-  strategy = WheelTargetTrial(MidrangeAdmission(CP, enabled=True))
+  strategy = MidSpeedUnwind(MidrangeAdmission(CP, enabled=True))
   if curve_scope_enabled is True:
     from opendbc.car.ford.lateral_angle_wheel_target import enable_calibrated_curve_scope
     enable_calibrated_curve_scope(strategy)

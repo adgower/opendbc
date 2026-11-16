@@ -13,6 +13,7 @@ lateral control is forced inactive (mode 0) so the PSCM releases cleanly.
 from bisect import bisect_right
 import math
 from dataclasses import dataclass
+from functools import lru_cache
 
 from opendbc.car import DT_CTRL
 from opendbc.car.ford.values import CAR, CarControllerParams, FordFlags
@@ -113,6 +114,15 @@ class HumanTurnDetector:
     self.active = False
 
 
+@lru_cache(maxsize=128)
+def _curvature_gain(speed, magnitude, low_gain, high_gain, navigator):
+  low = interp(speed, (13.5, 26.82), (1.0, low_gain))
+  low_factor = _FORD_LOW_SPEED_FACTOR_ANG if navigator else 1.0
+  high_factor = _FORD_HIGH_SPEED_FACTOR_ANG if navigator else 1.0
+  high = interp(speed, (13.5, 26.82), (1.30 * low_factor, high_gain * high_factor))
+  return interp(magnitude, (0.0007, 0.001), (low, high))
+
+
 class LateralAngle:
   """Angle-mode lateral control strategy for Ford vehicles."""
 
@@ -136,15 +146,8 @@ class LateralAngle:
     return -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
 
   def get_curvature_factor(self, v_ego: float, kappa_cmd: float) -> float:
-    # Speed-interpolated gain: 1.0 at low speed, platform-specific at high speed
-    low_gain_interp = float(interp(v_ego, [13.5, 26.82], [1.0, self.gain_low_curv]))
-    low_speed_factor = _FORD_LOW_SPEED_FACTOR_ANG if self.CP.carFingerprint in _NAVIGATOR_CARS else 1.0
-    high_speed_factor = _FORD_HIGH_SPEED_FACTOR_ANG if self.CP.carFingerprint in _NAVIGATOR_CARS else 1.0
-    high_gain_interp = float(interp(v_ego, [13.5, 26.82],
-                                    [1.30 * low_speed_factor, self.gain_high_curv * high_speed_factor]))
-
-    # Curvature magnitude selects between low-curv and high-curv gain
-    return float(interp(abs(kappa_cmd), [0.0007, 0.001], [low_gain_interp, high_gain_interp]))
+    return _curvature_gain(v_ego, abs(kappa_cmd), self.gain_low_curv, self.gain_high_curv,
+                           self.CP.carFingerprint in _NAVIGATOR_CARS)
 
   def update(self, CC, CS, actuators) -> AngleLateralResult:
     """

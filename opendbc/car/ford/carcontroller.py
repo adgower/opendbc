@@ -169,7 +169,11 @@ class CarController(CarControllerBase):
 
       if use_angle_mode:
         # Angle mode: path_angle is the actuator; c0/c2/c3 are zero
-        angle_result = self.lateral_angle.update(CC, CS, actuators)
+        CS.angle_roll_projections = {}
+        try:
+          angle_result = self.lateral_angle.update(CC, CS, actuators)
+        finally:
+          CS.angle_roll_projections = None
         lat_active = CC.latActive and not self.lateral_angle.human_turn_active
 
         # In angle mode, curvature is held at 0 (inactive sentinel) on the wire

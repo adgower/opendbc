@@ -51,7 +51,7 @@ class RollAwareMapping(BudgetedTrackingPrototype):
 
   def _prepare_map(self, CC, CS, actuators):
     previous_request = self._previous_request
-    self._previous_request = float(actuators.curvature)
+    k = self._previous_request = float(actuators.curvature)
     self._map_input = None
     self.map_target = 0.0
     self.map_weight = 0.0
@@ -60,7 +60,6 @@ class RollAwareMapping(BudgetedTrackingPrototype):
     ctx = self.context
     cal = self.calibration
     v = float(CS.out.vEgoRaw)
-    k = float(actuators.curvature)
     now = ctx[0] if ctx is not None else None
     previous = self._last_map_ns
     self._last_map_ns = now
@@ -78,11 +77,11 @@ class RollAwareMapping(BudgetedTrackingPrototype):
       and math.isfinite(v)
       and math.isfinite(k)
       and abs(k) > 0.0007
-      and self.mapping_weight(v) > 0
       and ctx is not None
       and cal is not None
     )
-    if not valid:
+    map_weight = self.mapping_weight(v) if valid else 0.0
+    if not map_weight > 0:
       self.map_delta = 0.0
       return
     _, state_ns, control_ns, model_ns, lane_change, model_valid = ctx
@@ -112,20 +111,29 @@ class RollAwareMapping(BudgetedTrackingPrototype):
       self.map_delta = 0.0
       self.map_reason = "missing_angle_target"
       return
-    self.application_model.update_params(stiffness, ratio)
-    expected = math.degrees(self.application_model.get_steer_from_curvature(-k, model_v, roll)) + offset
-    if abs(target - expected) > self.TARGET_TOLERANCE_DEG:
+    model = self.application_model
+    model.update_params(stiffness, ratio)
+    # The nested reference branches have independent slew/history state.
+    # Share only the stateless projection, and discard it after this angle update.
+    projections = getattr(CS, "angle_roll_projections", None)
+    key = (model.m, model.l, model.aF, model.aR, model.chi, model.cF, model.cR, ratio, k, model_v, roll, offset, target, self.TARGET_TOLERANCE_DEG)
+    projection = projections.get(key) if projections is not None else None
+    if projection is None:
+      expected = math.degrees(model.get_steer_from_curvature(-k, model_v, roll)) + offset
+      tire_target = -model.calc_curvature(math.radians(target - offset), model_v, 0.0) if not abs(target - expected) > self.TARGET_TOLERANCE_DEG else None
+      projection = (expected, tire_target)
+      if projections is not None:
+        projections[key] = projection
+    expected, tire_target = projection
+    if abs(target - expected) > self.TARGET_TOLERANCE_DEG or tire_target is None:
       self.map_delta = 0.0
       self.map_reason = "target_calibration_mismatch"
       return
-    # Transform the already roll-aware wheel target once, using the application
-    # model without roll. This is not a degree-to-path-angle wire conversion.
-    tire_target = -self.application_model.calc_curvature(math.radians(target - offset), model_v, 0.0)
     current = self.get_current_curvature(CS)
     clipped = max(current - CarControllerParams.CURVATURE_ERROR, min(current + CarControllerParams.CURVATURE_ERROR, k)) if v > 9 else k
     factor = super().get_curvature_factor(v, clipped)
     base = clipped * v * factor
-    weight = self.mapping_weight(v) * smoothstep((abs(k) - 0.0007) / 0.0008)
+    weight = map_weight * smoothstep((abs(k) - 0.0007) / 0.0008)
     desired = (tire_target - k) * v * factor * weight
     cap = min(self.MAX_DELTA_RAD, self.MAX_RELATIVE_DELTA * abs(base))
     desired = max(-cap, min(cap, desired))

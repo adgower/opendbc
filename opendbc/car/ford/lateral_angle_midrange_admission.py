@@ -109,17 +109,20 @@ class MidrangeMapping(RollAwareMapping):
     return max(RollAwareMapping.mapping_weight(v), smoothstep((mph - 35) / 5) * (1 - smoothstep((mph - 50) / 5)))
 
   def _prepare_map(self, CC, CS, actuators):
-    previous = (self.map_delta, self._last_map_ns, self._previous_request)
-    super()._prepare_map(CC, CS, actuators)
     mph = float(CS.out.vEgoRaw) / 0.44704
     if not 35 < mph < 55:
+      super()._prepare_map(CC, CS, actuators)
       return
-    direction = -1 if self.map_target * self.map_base < 0 else 1
-    if getattr(self, "admission_mode", 0) == direction:
-      return
-    # Re-evaluate the exact original policy from its pre-step state. Scaling an
-    # already slew-limited full-extension state would distort original history.
-    self.map_delta, self._last_map_ns, self._previous_request = previous
+    mode = getattr(self, "admission_mode", 0)
+    if mode != 0:
+      previous = (self.map_delta, self._last_map_ns, self._previous_request)
+      super()._prepare_map(CC, CS, actuators)
+      direction = -1 if self.map_target * self.map_base < 0 else 1
+      if mode == direction:
+        return
+      # Re-evaluate the original policy from the pre-step state.
+      self.map_delta, self._last_map_ns, self._previous_request = previous
+    # Without admission, there is no extended direction to evaluate.
     self._original_mapping = True
     try:
       super()._prepare_map(CC, CS, actuators)

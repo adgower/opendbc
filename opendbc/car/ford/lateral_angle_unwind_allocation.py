@@ -6,6 +6,7 @@ stop control rather than bypass native envelopes or refund unknown exposure.
 
 import math
 from collections import deque
+from statistics import median
 import numpy as np
 from opendbc.can.dbc import DBC
 from opendbc.car.vehicle_model import VehicleModel
@@ -264,7 +265,7 @@ class UnwindAllocation:
           clearance_horizon = 0.3 if low > 0 or mid > 0 else 0.15
           projected_wheel_error = min(e["error"], e["error"] + clearance_horizon * es)
           useful = projected_wheel_error - 0.5
-          body = excess > max(0.1, 0.1 * demand) and np.median([r["excess"] for r in rr[-3:]]) > max(0.1, 0.1 * demand)
+          body = excess > max(0.1, 0.1 * demand) and median([r["excess"] for r in rr[-3:]]) > max(0.1, 0.1 * demand)
           coherent = all(r["target"] * target > 0 and r["error"] > 0.5 for r in rr)
           if useful > 0 and body and coherent:
             if low > 0 and ks < -0.1 * abs(e["k"]) and kk[-1] <= 0.95 * max(kk):
@@ -311,7 +312,7 @@ class UnwindAllocation:
     # shared or midband area or active time. Legacy episode age is untouched.
     if not mid_proposal and not previous_mid:
       self.mid_start = None
-    if mid_proposal and self.mid_start is None and (e["excess"] < 0.25 or np.median([r["excess"] for r in self.rows]) < 0.25):
+    if mid_proposal and self.mid_start is None and (e["excess"] < 0.25 or median([r["excess"] for r in self.rows]) < 0.25):
       desired = 0.0
       self.reason = "mid_onset_evidence"
     start = self.mid_start if mid_proposal else self.start
@@ -531,7 +532,7 @@ class MidSpeedUnwind(WheelTargetTrial):
         slope = time @ mags / den
         error_slope = time @ err / den
         body_ok = all(e['excess'] > max(.10, .10 * e['demand']) for e in rr)
-        onset_ok = last_trim > 0 or min(rr[-1]['excess'], float(np.median([e['excess'] for e in rr]))) >= .25
+        onset_ok = last_trim > 0 or min(rr[-1]['excess'], float(median([e['excess'] for e in rr]))) >= .25
         wheel_ok = min(err) > .5 and min(err[-1], err[-1] + .30 * error_slope) > .5
         if body_ok and onset_ok and wheel_ok and slope < -.10 * mags[-1]:
           raw = float(getattr(self.reference, 'actual_reference_path', stock.path_angle))

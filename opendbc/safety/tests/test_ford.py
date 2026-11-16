@@ -442,6 +442,38 @@ class TestFordCANFDStockSafety(TestFordSafetyBase):
   FWD_BLACKLISTED_ADDRS = {2: [MSG_ACCDATA_3, MSG_Lane_Assist_Data1, MSG_LateralMotionControl2,
                                MSG_IPMA_Data]}
 
+  def test_vision_curve_buttons(self):
+    self.safety.set_safety_hooks(self.SAFETY_MODEL, self.SAFETY_PARAM | FordSafetyFlags.VISION_CURVE_SPEED)
+    self.safety.init_tests()
+    down = "CcAslButtnSetDecPress"
+    up = "CcAslButtnSetIncPress"
+
+    for bus in (0, 2):
+      for allowed in (False, True):
+        for cruise in (False, True):
+          for moving in (False, True):
+            for gas in (False, True):
+              self._rx(self._vehicle_moving_msg(20 if moving else 0))
+              self._rx(self._pcm_status_msg(cruise))
+              self._rx(self._user_gas_msg(10 if gas else 0))
+              self.safety.set_controls_allowed(allowed)
+              for button in (up, down):
+                msg = self.packer.make_can_msg_safety("Steering_Data_FD1", bus, {button: 1})
+                self.assertEqual(self._tx(msg), allowed and cruise and moving and not gas)
+
+      self._rx(self._user_gas_msg(0))
+      self._rx(self._vehicle_moving_msg(20))
+      self._rx(self._pcm_status_msg(True))
+      self.safety.set_controls_allowed(True)
+      for conflict in (down, "CcAsllButtnResPress", "CcAslButtnCnclPress"):
+        msg = self.packer.make_can_msg_safety("Steering_Data_FD1", bus, {up: 1, conflict: 1})
+        self.assertFalse(self._tx(msg))
+      brake = {"BpedDrvAppl_D_Actl": 2, "CcStat_D_Actl": 5}
+      self._rx(self.packer.make_can_msg_safety("EngBrakeData", 0, brake))
+      self.safety.set_controls_allowed(True)
+      self.assertFalse(self._tx(self.packer.make_can_msg_safety("Steering_Data_FD1", bus, {up: 1})))
+      self._rx(self.packer.make_can_msg_safety("EngBrakeData", 0, {"BpedDrvAppl_D_Actl": 1, "CcStat_D_Actl": 5}))
+
 
 class TestFordLongitudinalSafetyBase(TestFordSafetyBase):
   MAX_ACCEL = 2.0  # accel is used for brakes, but openpilot can set positive values

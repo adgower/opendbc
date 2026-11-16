@@ -43,6 +43,8 @@ def apply_creep_compensation(accel: float, v_ego: float) -> float:
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
+    self.vision_curve_enabled = False
+    self.vision_curve_button: str | None = None
     self.packer = CANPacker(dbc_names[Bus.pt])
     self.CAN = fordcan.CanBus(CP)
 
@@ -142,16 +144,22 @@ class CarController(CarControllerBase):
     fcw_alert = hud_control.visualAlert == VisualAlert.fcw
 
     ### acc buttons ###
+    clear_curve_button = "" if self.vision_curve_enabled else None
     if CC.cruiseControl.cancel:
-      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, cancel=True))
-      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.main, CS.buttons_stock_values, cancel=True))
+      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, cancel=True, curve_button=clear_curve_button))
+      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.main, CS.buttons_stock_values, cancel=True, curve_button=clear_curve_button))
     elif CC.cruiseControl.resume and (self.frame % CarControllerParams.BUTTONS_STEP) == 0:
-      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, resume=True))
-      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.main, CS.buttons_stock_values, resume=True))
+      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, resume=True, curve_button=clear_curve_button))
+      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.main, CS.buttons_stock_values, resume=True, curve_button=clear_curve_button))
     # if stock lane centering isn't off, send a button press to toggle it off
     # the stock system checks for steering pressed, and eventually disengages cruise control
     elif CS.acc_tja_status_stock_values["Tja_D_Stat"] != 0 and (self.frame % CarControllerParams.ACC_UI_STEP) == 0:
-      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, tja_toggle=True))
+      can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, tja_toggle=True, curve_button=clear_curve_button))
+
+    elif self.vision_curve_button is not None:
+      for bus in (self.CAN.camera, self.CAN.main):
+        can_sends.append(fordcan.create_button_msg(self.packer, bus, CS.buttons_stock_values, curve_button=self.vision_curve_button))
+    self.vision_curve_button = None
 
     ### lateral control ###
     # send steer msg at 20Hz

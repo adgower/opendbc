@@ -292,7 +292,7 @@ def create_lkas_ui_msg(packer, CAN: CanBus, main_on: bool, enabled: bool, steer_
   return packer.make_can_msg("IPMA_Data", CAN.main, values)
 
 
-def create_button_msg(packer, bus: int, stock_values: dict, cancel=False, resume=False, tja_toggle=False):
+def create_button_msg(packer, bus: int, stock_values: dict, cancel=False, resume=False, tja_toggle=False, *, curve_button=None):
   """
   Creates a CAN message for the Ford SCCM buttons/switches.
 
@@ -340,6 +340,9 @@ def create_button_msg(packer, bus: int, stock_values: dict, cancel=False, resume
     "CcAsllButtnResPress": 1 if resume else 0,      # CC resume button
     "TjaButtnOnOffPress": 1 if tja_toggle else 0,   # LCA/TJA toggle button
   })
+  if curve_button is not None:
+    values["CcAslButtnSetDecPress"] = curve_button == "SET-"
+    values["CcAslButtnSetIncPress"] = curve_button == "SET+"
   return packer.make_can_msg("Steering_Data_FD1", bus, values)
 
 

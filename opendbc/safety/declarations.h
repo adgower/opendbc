@@ -368,6 +368,7 @@ typedef struct {
   ChryslerPlatform chrysler_platform;
 
   bool ford_pinion_curvature;
+  bool ford_vision_curve_speed;
   uint8_t ford_pinion_rx_index;
 
   GmHardware gm_hw;

@@ -318,6 +318,15 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
     violation |= ((msg->data[1] >> 0) & 1U) && !safety.cruise_engaged_prev;   // Signal: CcAslButtnCnclPress (cancel)
     violation |= ((msg->data[3] >> 1) & 1U) && !safety.controls_allowed;     // Signal: CcAsllButtnResPress (resume)
 
+    if (safety_setup.ford_vision_curve_speed) {
+      const unsigned int set_buttons = (msg->data[3] >> 3) & 0x3U;
+      if (set_buttons != 0U) {
+        violation |= set_buttons == 0x3U || !safety.controls_allowed || !safety.cruise_engaged_prev ||
+                     !safety.vehicle_moving || safety.brake_pressed || safety.gas_pressed;
+        violation |= GET_BIT(msg, 8U) || GET_BIT(msg, 25U);
+      }
+    }
+
     if (violation) {
       tx = false;
     }
@@ -473,6 +482,11 @@ static safety_config ford_init(uint16_t param) {
   const uint16_t FORD_PARAM_CANFD = 2;
   const bool ford_canfd = GET_FLAG(param, FORD_PARAM_CANFD);
 
+  const uint16_t FORD_PARAM_VISION_CURVE_SPEED = 16;
+  const uint16_t FORD_PARAM_LONGITUDINAL = 1;
+  safety_setup.ford_vision_curve_speed = ford_canfd && !GET_FLAG(param, FORD_PARAM_LONGITUDINAL) &&
+                                        GET_FLAG(param, FORD_PARAM_VISION_CURVE_SPEED);
+
   const uint16_t FORD_PARAM_PINION_CURVATURE = 8;
   safety_setup.ford_pinion_curvature = ford_canfd && GET_FLAG(param, FORD_PARAM_PINION_CURVATURE);
   safety.ford_pinion_seen = false;
@@ -487,7 +501,6 @@ static safety_config ford_init(uint16_t param) {
   if (ford_canfd) {
     ret = BUILD_SAFETY_CFG(ford_rx_checks, FORD_CANFD_STOCK_TX_MSGS);
 #ifdef ALLOW_DEBUG
-    const uint16_t FORD_PARAM_LONGITUDINAL = 1;
     if (GET_FLAG(param, FORD_PARAM_LONGITUDINAL)) {
       ret = BUILD_SAFETY_CFG(ford_rx_checks, FORD_CANFD_LONG_TX_MSGS);
     }

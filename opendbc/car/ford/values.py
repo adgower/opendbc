@@ -44,6 +44,7 @@ class FordSafetyFlags(IntFlag):
   CANFD = 2
   ANGLE = 4
   PINION_CURVATURE = 8
+  VISION_CURVE_SPEED = 16
 
 
 class FordFlags(IntFlag):

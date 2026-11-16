@@ -14,6 +14,8 @@ from opendbc.car.ford.lateral_angle_low_speed_prototype import smoothstep
 from opendbc.car.ford.values import CAR, FordFlags
 
 
+_NAVIGATOR_TRACKING_FLAGS = int(FordFlags.PINION_CURVATURE | FordFlags.LOW_SPEED_GAIN)
+
 class HighSpeedReduction:
   MAX_FRACTION = 0.15
   MAX_RAD = 0.01
@@ -179,8 +181,7 @@ class HighSpeedReduction:
       and not getattr(s, "rightBlinker", False)
       and not getattr(s, "brakePressed", False)
       and self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
-      and self.CP.flags & FordFlags.PINION_CURVATURE
-      and self.CP.flags & FordFlags.LOW_SPEED_GAIN
+      and self.CP.flags & _NAVIGATOR_TRACKING_FLAGS == _NAVIGATOR_TRACKING_FLAGS
       and ctx is not None
       and cal is not None
       and math.isfinite(k)
@@ -214,8 +215,13 @@ class HighSpeedReduction:
       self.reason = "driver_or_inactive"
       return 0.0
     mph = v / 0.44704
-    weight = smoothstep((mph - 60) / 10) * self._curve_scope(k, v) * smoothstep((abs(k) * v * v - 0.25) / 0.25)
-    if weight <= 0 or k * previous < 0:
+    speed_weight = smoothstep((mph - 60) / 10)
+    demand_weight = smoothstep((abs(k) * v * v - 0.25) / 0.25)
+    if speed_weight <= 0 or demand_weight <= 0 or k * previous < 0:
+      self.reason = "outside_scope_or_unwinding"
+      return 0.0
+    weight = speed_weight * self._curve_scope(k, v) * demand_weight
+    if weight <= 0:
       self.reason = "outside_scope_or_unwinding"
       return 0.0
     vm = self.reference.application_model

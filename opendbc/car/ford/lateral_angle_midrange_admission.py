@@ -1,6 +1,7 @@
 """Bounded temporal admission for the existing opt-in Navigator tracking trial."""
 
 import math
+from functools import lru_cache
 from collections import deque
 from opendbc.car.vehicle_model import VehicleModel
 from opendbc.car.ford.lateral_angle_roll_mapping import RollAwareMapping
@@ -102,19 +103,23 @@ class MidrangeMapping(RollAwareMapping):
     self.baseline = baseline
     self._original_mapping = False
 
-  def mapping_weight(self, v):
-    if self._original_mapping:
-      return RollAwareMapping.mapping_weight(v)
+  @staticmethod
+  @lru_cache(maxsize=128)
+  def _extended_weight(v):
     mph = v / 0.44704
     return max(RollAwareMapping.mapping_weight(v), smoothstep((mph - 35) / 5) * (1 - smoothstep((mph - 50) / 5)))
 
+  def mapping_weight(self, v):
+    return RollAwareMapping.mapping_weight(v) if self._original_mapping else self._extended_weight(v)
+
   def _prepare_map(self, CC, CS, actuators):
-    mph = float(CS.out.vEgoRaw) / 0.44704
+    speed = float(CS.out.vEgoRaw)
+    mph = speed / 0.44704
     if not 35 < mph < 55:
       super()._prepare_map(CC, CS, actuators)
       return
     mode = getattr(self, "admission_mode", 0)
-    if mode != 0:
+    if mode != 0 and self._extended_weight(speed) > RollAwareMapping.mapping_weight(speed):
       previous = (self.map_delta, self._last_map_ns, self._previous_request)
       super()._prepare_map(CC, CS, actuators)
       direction = -1 if self.map_target * self.map_base < 0 else 1
@@ -122,7 +127,7 @@ class MidrangeMapping(RollAwareMapping):
         return
       # Re-evaluate the original policy from the pre-step state.
       self.map_delta, self._last_map_ns, self._previous_request = previous
-    # Without admission, there is no extended direction to evaluate.
+    # No extension is needed when admission is absent or the maps agree.
     self._original_mapping = True
     try:
       super()._prepare_map(CC, CS, actuators)

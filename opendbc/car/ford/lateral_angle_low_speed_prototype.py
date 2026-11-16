@@ -24,7 +24,7 @@ def smoothstep(value: float) -> float:
 class LowSpeedGainPrototype(LateralAngle):
   def get_curvature_factor(self, v_ego: float, kappa_cmd: float) -> float:
     original = super().get_curvature_factor(v_ego, kappa_cmd)
-    if self.CP.carFingerprint != CAR.LINCOLN_NAVIGATOR_MK4 or v_ego >= FADE_END_MPS:
+    if v_ego >= FADE_END_MPS or self.CP.carFingerprint != CAR.LINCOLN_NAVIGATOR_MK4:
       return original
 
     # Query unchanged endpoint gains so owner's coefficients stay authoritative.

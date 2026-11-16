@@ -6,6 +6,7 @@ parameter or device API. Existing below25mph tracking remains the baseline.
 """
 
 import math
+from functools import lru_cache
 from opendbc.car.ford.lateral_angle import clip, interp
 from opendbc.car.ford.lateral_angle import AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES, FORD_DBC_PATH_ANGLE_MIN, FORD_DBC_PATH_ANGLE_MAX
 from opendbc.car.vehicle_model import VehicleModel
@@ -13,6 +14,8 @@ from opendbc.car.ford.lateral_angle_tracking_budget import BudgetedTrackingProto
 from opendbc.car.ford.lateral_angle_low_speed_prototype import smoothstep
 from opendbc.car.ford.values import CAR, FordFlags, CarControllerParams
 
+
+_NAVIGATOR_TRACKING_FLAGS = int(FordFlags.PINION_CURVATURE | FordFlags.LOW_SPEED_GAIN)
 
 class RollAwareMapping(BudgetedTrackingPrototype):
   MAX_DELTA_RAD = 0.01
@@ -45,6 +48,7 @@ class RollAwareMapping(BudgetedTrackingPrototype):
     self.calibration = (now_ns, sample_ns, bool(valid), roll, ratio, stiffness, offset_deg)
 
   @staticmethod
+  @lru_cache(maxsize=128)
   def mapping_weight(v):
     mph = v / 0.44704
     return smoothstep((mph - 50) / 5) * (1 - smoothstep((mph - 65) / 5)) if math.isfinite(mph) else 0.0
@@ -72,8 +76,7 @@ class RollAwareMapping(BudgetedTrackingPrototype):
       and not getattr(state, "steerFaultTemporary", False)
       and not getattr(state, "steerFaultPermanent", False)
       and self.CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4
-      and self.CP.flags & FordFlags.PINION_CURVATURE
-      and self.CP.flags & FordFlags.LOW_SPEED_GAIN
+      and self.CP.flags & _NAVIGATOR_TRACKING_FLAGS == _NAVIGATOR_TRACKING_FLAGS
       and math.isfinite(v)
       and math.isfinite(k)
       and abs(k) > 0.0007

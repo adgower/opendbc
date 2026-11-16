@@ -3,7 +3,7 @@
 Trial calibration, not validated vehicle tuning. Retains the owner's 1.20/0.97
 coefficients and all inherited feedback, override, signal, and rate limits.
 """
-from numpy import interp
+from opendbc.car.ford.lateral_angle import interp
 
 from opendbc.car.ford.lateral_angle import LateralAngle
 from opendbc.car.ford.values import CAR

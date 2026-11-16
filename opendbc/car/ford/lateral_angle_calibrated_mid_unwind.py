@@ -3,7 +3,7 @@
 import math
 from collections import deque
 from statistics import median
-from numpy import interp
+from opendbc.car.ford.lateral_angle import interp
 from opendbc.car.ford.lateral_angle import AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES
 from opendbc.car.ford.lateral_angle_sustained_unwind import SustainedErrorUnwind as Installed, SustainedTracking
 from opendbc.car.ford.lateral_angle_high_speed import HighSpeedReduction

@@ -2,7 +2,7 @@
 
 import math
 from collections import deque
-from numpy import interp
+from opendbc.car.ford.lateral_angle import interp
 from opendbc.car.ford.lateral_angle_earlier_unwind_onset import EarlierUnwindOnset as Installed
 from opendbc.car.ford.lateral_angle_calibrated_mid_unwind import CalibratedTracking
 from opendbc.car.ford.lateral_angle_extended_wheel import ExtendedWheelTarget

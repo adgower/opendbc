@@ -9,7 +9,7 @@ from collections import deque
 import numpy as np
 from opendbc.can.dbc import DBC
 from opendbc.car.vehicle_model import VehicleModel
-from opendbc.car.ford.lateral_angle import AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES
+from opendbc.car.ford.lateral_angle import interp, AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES
 from opendbc.car.ford.lateral_angle_low_speed_prototype import smoothstep
 
 
@@ -353,7 +353,7 @@ class UnwindAllocation:
     if desired < deliverable:
       self.reason = "budget_partial" if desired > 0 else "budget"
     wanted = b - math.copysign(desired, b) if desired else b
-    rate = float(np.interp(float(CS.out.vEgoRaw), _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES))
+    rate = float(interp(float(CS.out.vEgoRaw), _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES))
     cap = min(0.003, remaining)
     lo = max(min(b, b - math.copysign(cap, b)), self.previous - rate)
     hi = min(max(b, b - math.copysign(cap, b)), self.previous + rate)
@@ -447,7 +447,7 @@ class WheelTargetTrial(UnwindAllocation):
     value = original.path_angle
     steer = CC.latActive and not self.reference.human_turn_active
     highway_scope = smoothstep((mph - 70.5) / 1.5) * (1 - smoothstep((mph - 74.5) / 0.5))
-    rate = float(np.interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES)) if self.preview_eligible or self.handoff_pending or highway_scope > 0 else 0.0
+    rate = float(interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES)) if self.preview_eligible or self.handoff_pending or highway_scope > 0 else 0.0
     leaf = self.selected_leaf
     can_track = (steer and not getattr(CS.out, "steeringPressed", False) and self.latest_evidence is not None
                  and self.wheel_fraction > 0 and not self.wheel_release
@@ -515,7 +515,7 @@ class MidSpeedUnwind(WheelTargetTrial):
 
     v = float(CS.out.vEgoRaw)
     mph = v / .44704
-    rate = float(np.interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES))
+    rate = float(interp(v, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES))
     signed = math.copysign(1., stock.path_angle)
     path = abs(stock.path_angle)
     taper = smoothstep(mph - 56) * (1. - smoothstep(mph - 60))

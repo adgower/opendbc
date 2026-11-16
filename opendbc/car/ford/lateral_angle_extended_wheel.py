@@ -2,7 +2,7 @@
 
 import math
 import copy
-from numpy import interp
+from opendbc.car.ford.lateral_angle import interp
 from opendbc.car.ford.lateral_angle import AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES
 from collections import deque
 from opendbc.car.ford.lateral_angle_high_speed import HighSpeedReduction as InstalledHighSpeedReduction

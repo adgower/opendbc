@@ -10,13 +10,31 @@ Live map: path_angle = kappa_cmd * v_ego * curvature_factor
 Human-turn mode-0: when the driver manually turns (steeringPressed + large wheel angle),
 lateral control is forced inactive (mode 0) so the PSCM releases cleanly.
 """
+from bisect import bisect_right
 import math
 from dataclasses import dataclass
-from numpy import clip, interp
 
 from opendbc.car import DT_CTRL
 from opendbc.car.ford.values import CAR, CarControllerParams, FordFlags
 from opendbc.car.vehicle_model import VehicleModel
+
+def clip(value, lower, upper):
+  # Put the input first in max so a NaN input propagates.
+  if math.isnan(lower) or math.isnan(upper):
+    return math.nan
+  return min(max(value, lower), upper)
+
+
+def interp(value, xs, ys):
+  if math.isnan(value):
+    return value
+  right = bisect_right(xs, value)
+  if right == 0:
+    return ys[0]
+  if right == len(xs) or xs[right - 1] == value:
+    return ys[right - 1]
+  left = right - 1
+  return (ys[right] - ys[left]) / (xs[right] - xs[left]) * (value - xs[left]) + ys[left]
 
 
 @dataclass

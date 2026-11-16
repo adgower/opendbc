@@ -6,7 +6,7 @@ parameter or device API. Existing below25mph tracking remains the baseline.
 """
 
 import math
-from numpy import clip, interp
+from opendbc.car.ford.lateral_angle import clip, interp
 from opendbc.car.ford.lateral_angle import AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES, FORD_DBC_PATH_ANGLE_MIN, FORD_DBC_PATH_ANGLE_MAX
 from opendbc.car.vehicle_model import VehicleModel
 from opendbc.car.ford.lateral_angle_tracking_budget import BudgetedTrackingPrototype

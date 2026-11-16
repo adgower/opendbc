@@ -4,7 +4,7 @@ The update sequence is copied from the pinned installed strategy so the new term
 is before its unchanged range/rate bounds. No learned/integral state is used.
 """
 import math
-from numpy import clip, interp
+from opendbc.car.ford.lateral_angle import clip, interp
 from opendbc.car.ford.lateral_angle import (
   AngleLateralResult, FORD_DBC_PATH_ANGLE_MIN, FORD_DBC_PATH_ANGLE_MAX,
   _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES,

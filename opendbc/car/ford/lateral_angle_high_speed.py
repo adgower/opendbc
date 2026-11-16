@@ -7,7 +7,7 @@ changes, never counterfactual vehicle motion. No CAN interfaces or parameter I/O
 import math
 from collections import deque
 from statistics import median
-from numpy import interp
+from opendbc.car.ford.lateral_angle import interp
 from opendbc.car.ford.lateral_angle_roll_mapping import RollAwareMapping
 from opendbc.car.ford.lateral_angle import AngleLateralResult, _SOFT_ROC_SPEEDS, _SOFT_ROC_VALUES
 from opendbc.car.ford.lateral_angle_low_speed_prototype import smoothstep

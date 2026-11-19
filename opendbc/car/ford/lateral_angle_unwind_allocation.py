@@ -269,7 +269,7 @@ class UnwindAllocation:
           body = excess > max(0.1, 0.1 * demand) and median([r["excess"] for r in rr[-3:]]) > max(0.1, 0.1 * demand)
           coherent = all(r["target"] * target > 0 and r["error"] > 0.5 for r in rr)
           early_highway = (
-            72. <= mph <= 75. and coherent and self.earned_axis == axis
+            72. <= mph <= 75. and ks < -1e-8 and coherent and self.earned_axis == axis
             and all(r["excess"] > max(0.25, 0.1 * r["demand"]) for r in rr)
           )
           if early_highway:

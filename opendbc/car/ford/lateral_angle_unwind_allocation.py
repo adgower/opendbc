@@ -199,6 +199,7 @@ class UnwindAllocation:
     e = self.evidence(CC, CS, a)
     desired = 0.0
     projected_wheel_error = 0.0
+    early_highway = False
     self.reason = "guard"
     now = self.context["now_ns"] if self.context else 0
     dt = (now - self.last) / 1e9 if self.last is not None else 0.05
@@ -267,7 +268,14 @@ class UnwindAllocation:
           useful = projected_wheel_error - 0.5
           body = excess > max(0.1, 0.1 * demand) and median([r["excess"] for r in rr[-3:]]) > max(0.1, 0.1 * demand)
           coherent = all(r["target"] * target > 0 and r["error"] > 0.5 for r in rr)
-          if useful > 0 and body and coherent:
+          early_highway = (
+            72. <= mph <= 75. and coherent and self.earned_axis == axis
+            and all(r["excess"] > max(0.25, 0.1 * r["demand"]) for r in rr)
+          )
+          if early_highway:
+            desired = min(0.0015, 0.05 * abs(b))
+            self.reason = "mid_high_unwind"
+          elif useful > 0 and body and coherent:
             if low > 0 and ks < -0.1 * abs(e["k"]) and kk[-1] <= 0.95 * max(kk):
               desired = min(0.003, 0.05 * abs(b), 0.15 * (-ks) * abs(b) / max(abs(e["k"]), 1e-8)) * low
               self.reason = "unwind"
@@ -321,8 +329,8 @@ class UnwindAllocation:
     # transition and only for persistent coherent wheel excess.
     mid_time_cap = 0.675
     if mid_proposal and e["v"] >= 70 * 0.44704:
-      mid_time_cap = 0.15
-      if projected_wheel_error <= 0.5 * abs(e["target"]):
+      mid_time_cap = 0.35 if early_highway else 0.15
+      if not early_highway and projected_wheel_error <= 0.5 * abs(e["target"]):
         desired = 0.0
         self.reason = "legacy_reserve"
     if desired > 0 and ((start is not None and now - start >= 8_000_000_000) or self.active_time >= 0.9
@@ -365,7 +373,10 @@ class UnwindAllocation:
     # A fresh middle-band onset has no ECU effect if the exact Ford path
     # field is unchanged after the controller's sign inversion and packing.
     # Leave release/rate-limited outputs alone and charge actual raw trims.
-    if mid_proposal and desired > 0 and previous_term == 0 and lo <= b <= hi:
+    # In a bend that has used early trim, do not charge later trim that
+    # quantizes to the unmodified command, when returning to b is feasible.
+    skip_invisible = self.mid_active_time > 0 and self.reason == "near_neutral"
+    if ((mid_proposal and desired > 0 and previous_term == 0) or skip_invisible) and lo <= b <= hi:
       signal = self.path_signal
       if math.floor((-value - signal.offset) / signal.factor + 0.5) == math.floor((-b - signal.offset) / signal.factor + 0.5):
         value = b

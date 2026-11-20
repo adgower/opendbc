@@ -511,8 +511,15 @@ class MidSpeedUnwind(WheelTargetTrial):
     self.bridge_previous = None
     self.bridge_trim = 0.
     self.bridge_spent = deque()
+    self.steady_curve_relief = None
 
   def update(self, CC, CS, a):
+    stock = self._mid_speed_unwind(CC, CS, a)
+    if self.steady_curve_relief is not None:
+      return self.steady_curve_relief.apply(stock, self, CC, CS.out)
+    return stock
+
+  def _mid_speed_unwind(self, CC, CS, a):
     stock = super().update(CC, CS, a)
     now = self.last
     previous = stock.path_angle if self.bridge_previous is None else self.bridge_previous
@@ -584,4 +591,7 @@ def create_tracking_trial(CP, *, enabled=False, curve_scope_enabled=False):
   if curve_scope_enabled is True:
     from opendbc.car.ford.lateral_angle_wheel_target import enable_calibrated_curve_scope
     enable_calibrated_curve_scope(strategy)
+    if not CP.openpilotLongitudinalControl:
+      from opendbc.car.ford.lateral_angle_steady_curve import SteadyCurveRelief
+      strategy.steady_curve_relief = SteadyCurveRelief()
   return strategy

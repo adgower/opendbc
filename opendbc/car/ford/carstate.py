@@ -1,9 +1,11 @@
+import math
+
 from opendbc.can import CANDefine, CANParser
 from opendbc.car import Bus, create_button_events, structs
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.ford.fordcan import CanBus
 from opendbc.car.ford.longitudinal_coordination import Torque
-from opendbc.car.ford.values import DBC, CarControllerParams, FordFlags
+from opendbc.car.ford.values import CAR, DBC, CarControllerParams, FordFlags
 from opendbc.car.interfaces import CarStateBase
 
 ButtonType = structs.CarState.ButtonEvent.Type
@@ -133,7 +135,9 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_can_parsers(CP):
+    # Vision Curve Speed can use compensated yaw without making its message mandatory for OEM ACC.
+    pt_messages = [("BrakeSnData_3", math.nan)] if CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4 and not CP.openpilotLongitudinalControl else []
     return {
-      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).main),
+      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], pt_messages, CanBus(CP).main),
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).camera),
     }

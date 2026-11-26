@@ -320,7 +320,7 @@ static bool ford_tx_hook(const CANPacket_t *msg) {
     if (safety_setup.ford_vision_curve_speed) {
       const unsigned int set_buttons = (msg->data[3] >> 3) & 0x3U;
       if (set_buttons != 0U) {
-        violation |= set_buttons == 0x3U || !safety.controls_allowed || !safety.cruise_engaged_prev ||
+        violation |= (set_buttons == 0x3U) || !safety.controls_allowed || !safety.cruise_engaged_prev ||
                      !safety.vehicle_moving || safety.brake_pressed || safety.gas_pressed;
         violation |= GET_BIT(msg, 8U) || GET_BIT(msg, 25U);
       }

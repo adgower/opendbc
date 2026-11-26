@@ -11,15 +11,17 @@ def model(rates):
 
 
 class Fixture:
-  def __init__(self, direction=1):
+  def __init__(self, direction=1, *, mph=65., demand=1., measured=1.15):
     self.direction = direction
-    self.speed = .44704 * 65
+    self.speed = .44704 * mph
+    self.demand = demand
+    self.measured = measured
     self.policy = NS(model=model([direction * .03] * 6), model_ns=0, human_turn_active=False, latest_evidence=None)
     self.state = NS(vEgo=self.speed, vEgoRaw=self.speed, cruiseState=NS(enabled=True), vehicleSensorsInvalid=False,
                     steeringPressed=False, brakePressed=False, gasPressed=False, leftBlinker=False, rightBlinker=False)
     self.control = NS(latActive=True)
     self.relief = SteadyCurveRelief()
-    self.yaw_dps = -direction * math.degrees(1.15 / self.speed)
+    self.yaw_dps = -direction * math.degrees(self.measured / self.speed)
     self.unsaturated = True
     self.yaw_age = self.sat_age = 0
     self.generation = 0
@@ -30,9 +32,9 @@ class Fixture:
   def step(self, *, valid=True):
     self.now += 50_000_000
     self.policy.model_ns = self.now
-    self.policy.latest_evidence = dict(t=self.now, stamps=(self.now,) * 3, k=self.direction / self.speed ** 2,
+    self.policy.latest_evidence = dict(t=self.now, stamps=(self.now,) * 3, k=self.direction * self.demand / self.speed ** 2,
                                       actual=self.direction * 3., target=self.direction * 2.,
-                                      yaw=self.direction * 1.15 / self.speed, generation=self.generation) if valid else None
+                                      yaw=self.direction * self.measured / self.speed, generation=self.generation) if valid else None
     result = self.relief.apply(AngleLateralResult(self.path, .00077), self.policy, self.control, self.state)
     assert result.shadow_curvature == .00077
     return result.path_angle
@@ -143,3 +145,25 @@ def test_crossing_above_band_stops_accrual_and_only_slew_limited_release_survive
   assert f.step() == pytest.approx(previous + .009)
   assert not f.relief.history and not f.relief.demands
   assert f.step() == f.path
+
+@pytest.mark.parametrize('direction', [-1, 1])
+def test_loaded_bend_requires_fresh_history_and_ends_before_51_mph(direction):
+  f = Fixture(direction, mph=50., demand=2., measured=2.25)
+  for _ in range(34):
+    assert f.step() == f.path
+  assert [f.step() for _ in range(8)][-1] == pytest.approx(f.path - direction * .0005)
+  f.state.vEgoRaw = 51. * .44704
+  assert f.step() == f.path
+  assert not f.relief.history and not f.relief.handoff
+  f.state.vEgoRaw = f.speed
+  for _ in range(34):
+    assert f.step() == f.path
+  assert [f.step() for _ in range(8)][-1] == pytest.approx(f.path - direction * .0005)
+
+
+@pytest.mark.parametrize(('mph', 'demand', 'measured'), [(46.99, 2., 2.3), (51., 2., 2.3), (50., 1.4, 1.7),
+                                                         (50., 2.8, 3.1), (50., 2., 2.04)])
+def test_loaded_bend_leaves_other_speeds_loads_and_small_errors_untouched(mph, demand, measured):
+  f = Fixture(mph=mph, demand=demand, measured=measured)
+  for _ in range(45):
+    assert f.step() == f.path

@@ -34,6 +34,7 @@ class SteadyCurveRelief:
     self.history = deque()
     self.previous = None
     self.handoff = False
+    self.loaded_bend_band = False
     self.generation = None
     self.source_stamps = ()
     self.preview_key = None
@@ -46,7 +47,7 @@ class SteadyCurveRelief:
   def confirmed(self, stock_path, policy, state):
     speed = state.vEgo
     evidence = policy.latest_evidence
-    if (not 63 * .44704 <= speed <= 66 * .44704 or evidence is None or
+    if (not (self.loaded_bend_band or 63 * .44704 <= speed <= 66 * .44704) or evidence is None or
         policy.model is None or not state.cruiseState.enabled or state.vehicleSensorsInvalid or policy.human_turn_active):
       self.reset_history()
       return False
@@ -78,7 +79,8 @@ class SteadyCurveRelief:
     times, loads = zip(*self.demands, strict=True)
     preceding = interp(oldest, times, loads)
     demand = max(abs(requested), abs(interp(now - 200_000_000, times, loads)), abs(preceding))
-    if demand <= .45 or abs(requested) >= 1.5 or direction * preceding <= 0:
+    min_demand, max_requested = (1.5, 2.8) if self.loaded_bend_band else (.45, 1.5)
+    if demand <= min_demand or abs(requested) >= max_requested or direction * preceding <= 0:
       self.history.clear()
       return False
     excess = min(-direction * math.radians(yaw_dps), direction * evidence['yaw']) * speed - demand
@@ -109,6 +111,13 @@ class SteadyCurveRelief:
     path = stock.path_angle
     previous = self.previous
     self.previous = path
+    # End the mid-speed correction before the existing 51–54 mph trim.
+    loaded_bend_band = (47 * .44704 <= state.vEgo < 51 * .44704 and
+                        47 * .44704 <= state.vEgoRaw < 51 * .44704)
+    if loaded_bend_band != self.loaded_bend_band:
+      self.reset_history()
+      self.handoff = False
+      self.loaded_bend_band = loaded_bend_band
     if (not control.latActive or policy.human_turn_active or state.steeringPressed or state.brakePressed or state.gasPressed
         or state.leftBlinker or state.rightBlinker or not math.isfinite(path)
         or not math.isfinite(state.vEgoRaw) or not math.isfinite(state.vEgo)):

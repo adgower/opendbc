@@ -24,6 +24,7 @@ class Fixture:
     self.yaw_dps = -direction * math.degrees(self.measured / self.speed)
     self.unsaturated = True
     self.yaw_age = self.sat_age = 0
+    self.wheel_excess = 1.
     self.generation = 0
     self.relief.read_inputs = lambda: (self.now - self.sat_age, self.unsaturated, self.now - self.yaw_age, self.yaw_dps)
     self.now = 1_000_000_000
@@ -33,7 +34,7 @@ class Fixture:
     self.now += 50_000_000
     self.policy.model_ns = self.now
     self.policy.latest_evidence = dict(t=self.now, stamps=(self.now,) * 3, k=self.direction * self.demand / self.speed ** 2,
-                                      actual=self.direction * 3., target=self.direction * 2.,
+                                      actual=self.direction * (2. + self.wheel_excess), target=self.direction * 2.,
                                       yaw=self.direction * self.measured / self.speed, generation=self.generation) if valid else None
     result = self.relief.apply(AngleLateralResult(self.path, .00077), self.policy, self.control, self.state)
     assert result.shadow_curvature == .00077
@@ -167,3 +168,43 @@ def test_loaded_bend_leaves_other_speeds_loads_and_small_errors_untouched(mph, d
   f = Fixture(mph=mph, demand=demand, measured=measured)
   for _ in range(45):
     assert f.step() == f.path
+
+
+@pytest.mark.parametrize('direction', [-1, 1])
+def test_stronger_loaded_bend_evidence_allows_earlier_single_count(direction):
+  f = Fixture(direction, mph=49., demand=1.65, measured=1.90)
+  f.wheel_excess = 2.
+  early = [f.step() for _ in range(28)]
+  assert early[:20] == [f.path] * 20
+  assert early[-1] == pytest.approx(f.path - direction * .0005)
+  assert all(abs(value - f.path) < .000501 for value in early)
+  f.state.leftBlinker = True
+  assert f.step() == f.path
+  assert not f.relief.history
+
+
+@pytest.mark.parametrize('fault', ['wheel', 'gyro', 'ford', 'disagree', 'tighten', 'sat', 'band', 'freshness', 'generation'])
+def test_earlier_loaded_bend_requires_corroboration_and_valid_context(fault):
+  f = Fixture(mph=49., demand=1.65, measured=1.90)
+  f.wheel_excess = 2.
+  for _ in range(26):
+    f.step()
+  if fault == 'wheel':
+    f.wheel_excess = 1.
+  elif fault == 'gyro':
+    f.measured = 1.69
+  elif fault == 'ford':
+    f.yaw_dps = -math.degrees(1.69 / f.speed)
+  elif fault == 'disagree':
+    f.yaw_dps = -math.degrees(2.14 / f.speed)
+  elif fault == 'tighten':
+    f.policy.model = model([.03, .03, .04, .04, .04, .05])
+  elif fault == 'sat':
+    f.unsaturated = False
+  elif fault == 'band':
+    f.state.vEgoRaw = 51. * .44704
+  elif fault == 'freshness':
+    f.yaw_age = 100_000_000
+  else:
+    f.generation += 1
+  assert f.step() == f.path

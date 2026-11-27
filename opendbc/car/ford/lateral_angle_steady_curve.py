@@ -44,7 +44,7 @@ class SteadyCurveRelief:
     self.demands.clear()
     self.history.clear()
 
-  def confirmed(self, stock_path, policy, state):
+  def _confirm_with_full_history(self, stock_path, policy, state):
     speed = state.vEgo
     evidence = policy.latest_evidence
     if (not (self.loaded_bend_band or 63 * .44704 <= speed <= 66 * .44704) or evidence is None or
@@ -104,6 +104,41 @@ class SteadyCurveRelief:
       self.preview_key = key
       self.preview_ok = opening_preview(policy.model, direction)
     return self.preview_ok
+
+  def confirmed(self, stock_path, policy, state):
+    if self._confirm_with_full_history(stock_path, policy, state):
+      return True
+    if not self.loaded_bend_band or not self.history:
+      return False
+
+    evidence = policy.latest_evidence
+    now = self.history[-1][0]
+    if evidence is None or now != evidence['t'] or not 650_000_000 <= now - self.history[0][0] < 1_300_000_000:
+      return False
+    speed = state.vEgo
+    direction = 1 if evidence['k'] > 0 else -1
+    magnitude = abs(evidence['k']) * speed ** 2
+    if not 1.45 <= magnitude < 2.8:
+      return False
+    _, _, _, ford_dps = self.read_inputs()
+    if abs(math.radians(ford_dps) + evidence['yaw']) * speed > .16:
+      return False
+
+    end = self.history[-1][0]
+    recent = [row for row in self.history if row[0] >= end - 650_000_000]
+    # 'demand' in the installed observer is already the maximum of 0, 0.2 and
+    # 0.4 s lags. Compare both yaw measurements with the largest demand in
+    # this additional 650 ms before allowing early relief.
+    peak = max(row[1] for row in recent)
+    if peak - min(row[1] for row in recent) > .12 or magnitude > peak + 1e-6:
+      return False
+    persistence = [row for row in recent if row[0] >= end - 450_000_000]
+    if len(persistence) < 9 or persistence[-1][0] - persistence[0][0] < 390_000_000:
+      return False
+    threshold = max(.12, .075 * peak)
+    if any(demand + excess - peak < threshold or wheel < 1.5 for _, demand, excess, wheel in persistence):
+      return False
+    return opening_preview(policy.model, direction)
 
   def apply(self, stock, policy, control, state):
     if self.read_inputs is None:

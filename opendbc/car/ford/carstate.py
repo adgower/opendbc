@@ -137,7 +137,12 @@ class CarState(CarStateBase):
   def get_can_parsers(CP):
     # Vision Curve Speed can use compensated yaw without making its message mandatory for OEM ACC.
     pt_messages = [("BrakeSnData_3", math.nan)] if CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4 and not CP.openpilotLongitudinalControl else []
+    camera = CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).camera)
+    if CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4:
+      # The DBC specifies a 1 s heartbeat with extra event frames. Allow one
+      # missed heartbeat and 50 ms of arrival jitter before declaring it stale.
+      camera.add_event_periodic_message("IPMA_Data", period_s=1., timeout_s=2.05, min_span_s=.9)
     return {
       Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], pt_messages, CanBus(CP).main),
-      Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).camera),
+      Bus.cam: camera,
     }

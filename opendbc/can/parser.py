@@ -1,8 +1,9 @@
 import math
 import numbers
 from collections import defaultdict, deque
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from functools import partial
 
 from opendbc.car.carlog import carlog
 from opendbc.can.dbc import DBC, Signal
@@ -105,6 +106,24 @@ class MessageState:
     return True
 
 
+@dataclass
+class EventPeriodicMessageState(MessageState):
+  min_span_ns: int = 0
+
+  def parse(self, nanos: int, dat: bytes) -> bool:
+    if len(dat) != self.size:
+      return False
+    last = self.timestamps[-1] if self.timestamps else None
+    if not super().parse(nanos, dat):
+      return False
+    if last is None or not 0 <= nanos - last <= self.timeout_threshold:
+      self.first_seen_nanos = nanos
+    return True
+
+  def valid(self, current_nanos: int, bus_timeout: bool) -> bool:
+    return super().valid(current_nanos, bus_timeout) and self.timestamps[-1] - self.first_seen_nanos >= self.min_span_ns
+
+
 class VLDict(dict):
   def __init__(self, parser):
     super().__init__()
@@ -145,7 +164,16 @@ class CANParser:
     self._last_update_nanos: int = 0
     self._last_invalid_log_nanos: int | None = None
 
-  def _add_message(self, name_or_addr: str | int, freq: float | None = None) -> None:
+  def add_event_periodic_message(self, name: str, *, period_s: float, timeout_s: float, min_span_s: float) -> None:
+    # Extra event frames can arrive between heartbeats. Use the declared period
+    # and require distinct valid frames over min_span_s at startup and after loss.
+    if not 0 < min_span_s <= period_s < timeout_s or not math.isfinite(timeout_s):
+      raise ValueError("Invalid event-periodic heartbeat timing")
+    state = self._add_message(name, 1. / period_s, partial(EventPeriodicMessageState, min_span_ns=round(min_span_s * 1e9)))
+    state.timeout_threshold = round(timeout_s * 1e9)
+
+  def _add_message(self, name_or_addr: str | int, freq: float | None = None,
+                   state_factory: Callable[..., MessageState] = MessageState) -> MessageState:
     if isinstance(name_or_addr, numbers.Number):
       msg = self.dbc.addr_to_msg.get(int(name_or_addr))
     else:
@@ -163,7 +191,7 @@ class CANParser:
     self.ts_nanos[msg.address] = {s: 0 for s in signal_names}
     self.ts_nanos[msg.name] = self.ts_nanos[msg.address]
 
-    state = MessageState(
+    state = state_factory(
       address=msg.address,
       name=msg.name,
       size=msg.size,
@@ -180,6 +208,7 @@ class CANParser:
     state.timeout_threshold = (1_000_000_000 / freq) * 10
 
     self.message_states[msg.address] = state
+    return state
 
   @property
   def bus_timeout(self) -> bool:

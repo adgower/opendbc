@@ -3,6 +3,7 @@ import math
 from opendbc.can import CANDefine, CANParser
 from opendbc.car import Bus, create_button_events, structs
 from opendbc.car.common.conversions import Conversions as CV
+from opendbc.car.ford.blindspot import NavigatorBlindspotCamera
 from opendbc.car.ford.fordcan import CanBus
 from opendbc.car.ford.longitudinal_coordination import Torque
 from opendbc.car.ford.values import CAR, DBC, CarControllerParams, FordFlags
@@ -119,6 +120,11 @@ class CarState(CarStateBase):
       cp_bsm = cp_cam if self.CP.flags & FordFlags.CANFD else cp
       ret.leftBlindspot = cp_bsm.vl["Side_Detect_L_Stat"]["SodDetctLeft_D_Stat"] != 0
       ret.rightBlindspot = cp_bsm.vl["Side_Detect_R_Stat"]["SodDetctRight_D_Stat"] != 0
+      if isinstance(cp_bsm, NavigatorBlindspotCamera):
+        ret.navigatorLeftBlindspotClearMonoTime = cp_bsm.left.clear_ns
+        ret.navigatorRightBlindspotClearMonoTime = cp_bsm.right.clear_ns
+        ret.navigatorLeftBlindspotBlockMonoTime = cp_bsm.left.block_ns
+        ret.navigatorRightBlindspotBlockMonoTime = cp_bsm.right.block_ns
 
     # Stock steering buttons so that we can passthru blinkers etc.
     self.buttons_stock_values = cp.vl["Steering_Data_FD1"]
@@ -137,7 +143,11 @@ class CarState(CarStateBase):
   def get_can_parsers(CP):
     # Vision Curve Speed can use compensated yaw without making its message mandatory for OEM ACC.
     pt_messages = [("BrakeSnData_3", math.nan)] if CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4 and not CP.openpilotLongitudinalControl else []
-    camera = CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).camera)
+    bsm_flags = FordFlags.CANFD | FordFlags.HAS_BSM
+    camera_bus = CanBus(CP).camera
+    navigator_bsm = CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4 and CP.flags & bsm_flags == bsm_flags and camera_bus == 2
+    camera_parser = NavigatorBlindspotCamera if navigator_bsm else CANParser
+    camera = camera_parser(DBC[CP.carFingerprint][Bus.pt], [], camera_bus)
     if CP.carFingerprint == CAR.LINCOLN_NAVIGATOR_MK4:
       # The DBC specifies a 1 s heartbeat with extra event frames. Allow one
       # missed heartbeat and 50 ms of arrival jitter before declaring it stale.

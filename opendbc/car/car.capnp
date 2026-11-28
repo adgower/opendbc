@@ -225,6 +225,12 @@ struct CarState {
   # blindspot sensors
   leftBlindspot @33 :Bool;  # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
+  # Navigator camera-bus timestamps, in monotonic nanoseconds. Clear is zero
+  # when unavailable. The last block survives later clear frames in a batch.
+  navigatorLeftBlindspotClearMonoTime @62 :UInt64;
+  navigatorRightBlindspotClearMonoTime @63 :UInt64;
+  navigatorLeftBlindspotBlockMonoTime @64 :UInt64;
+  navigatorRightBlindspotBlockMonoTime @65 :UInt64;
 
   fuelGauge @41 :Float32; # battery or fuel tank level from [0.0, 1.0]
   charging @43 :Bool;

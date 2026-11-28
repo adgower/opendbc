@@ -109,18 +109,24 @@ class MessageState:
 @dataclass
 class EventPeriodicMessageState(MessageState):
   min_span_ns: int = 0
+  last_observation_ns: int = 0
 
   def parse(self, nanos: int, dat: bytes) -> bool:
-    if len(dat) != self.size:
+    if len(dat) != self.size or nanos < self.last_observation_ns:
       return False
     last = self.timestamps[-1] if self.timestamps else None
     if not super().parse(nanos, dat):
       return False
-    if last is None or not 0 <= nanos - last <= self.timeout_threshold:
+    self.last_observation_ns = nanos
+    if last is None or nanos - last > self.timeout_threshold:
       self.first_seen_nanos = nanos
     return True
 
   def valid(self, current_nanos: int, bus_timeout: bool) -> bool:
+    # Late timestamps cannot make a previously expired heartbeat appear fresh.
+    if current_nanos < self.last_observation_ns:
+      return False
+    self.last_observation_ns = current_nanos
     return super().valid(current_nanos, bus_timeout) and self.timestamps[-1] - self.first_seen_nanos >= self.min_span_ns
 
 

@@ -73,3 +73,38 @@ def test_malformed_camera_status_cannot_refresh_or_requalify(size):
   assert not parser.can_valid
   assert 0x3d8 in send(4810, 8)
   assert parser.can_valid
+
+
+def test_rewinding_time_cannot_revive_a_lost_camera_heartbeat():
+  cp = CarInterface.get_non_essential_params(CAR.LINCOLN_NAVIGATOR_MK4)
+  parser = CarState.get_can_parsers(cp)[Bus.cam]
+  state = parser.message_states[0x3d8]
+
+  def update(ms, status_frames=0):
+    frames = [(0x123, bytes(8), parser.bus)] + [(0x3d8, bytes(8), parser.bus)] * status_frames
+    return parser.update([[ms * 1_000_000, frames]])
+
+  update(1000, 1)
+  update(2000, 1)
+  assert parser.can_valid
+  for ms in range(4100, 4200, 10):
+    update(ms)
+    valid = parser.can_valid
+  assert not valid
+
+  update(2800)
+  assert not parser.can_valid
+  for ms in (2800, 3800):
+    assert 0x3d8 not in update(ms, 1)
+    assert not parser.can_valid
+
+  old_count = len(state.timestamps)
+  assert 0x3d8 in update(4300, 2)
+  assert len(state.timestamps) == old_count + 2
+  # A delayed frame can also arrive before the next validity check.
+  assert 0x3d8 not in update(4250, 1)
+  assert not parser.can_valid
+  assert 0x3d8 in update(4400, 1)
+  assert not parser.can_valid
+  assert 0x3d8 in update(5200, 1)
+  assert parser.can_valid
